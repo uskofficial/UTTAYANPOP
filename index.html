@@ -28,60 +28,60 @@
             max-width: 460px;
             width: 100%;
             border-radius: 48px;
-            padding: 28px 24px 36px;
+            padding: 24px 20px 28px;
             text-align: center;
             box-shadow: 0 20px 35px -12px rgba(0, 0, 0, 0.15);
         }
         .logo {
-            width: 72px;
-            margin-bottom: 8px;
+            width: 60px;
+            margin-bottom: 6px;
         }
         h1 {
             background: linear-gradient(135deg, #1a5d1a, #3b8b3b);
             background-clip: text;
             -webkit-background-clip: text;
             color: transparent;
-            font-size: 32px;
+            font-size: 28px;
         }
         .badge {
             background: #f0fdf4;
             display: inline-flex;
             align-items: center;
-            gap: 8px;
-            padding: 5px 14px;
+            gap: 6px;
+            padding: 4px 12px;
             border-radius: 40px;
-            font-size: 12px;
-            margin-top: 8px;
+            font-size: 11px;
+            margin-top: 6px;
         }
         .stats-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 18px;
-            margin: 28px 0 20px;
+            gap: 14px;
+            margin: 20px 0 16px;
         }
         .stat-card {
             background: #f0fdf4;
-            padding: 16px;
-            border-radius: 32px;
+            padding: 12px 8px;
+            border-radius: 28px;
         }
         .stat-card small {
             color: #475569;
-            font-size: 13px;
+            font-size: 12px;
         }
         .stat-card div {
-            font-size: 32px;
+            font-size: 28px;
             font-weight: 800;
             color: #1a5d1a;
         }
         #pop-img {
-            width: 220px;
+            width: 180px;
             cursor: pointer;
-            filter: drop-shadow(0 14px 18px rgba(0, 0, 0, 0.2));
+            filter: drop-shadow(0 10px 15px rgba(0, 0, 0, 0.15));
             transition: transform 0.06s cubic-bezier(0.2, 1.6, 0.5, 1);
         }
         #pop-img.disabled {
             cursor: not-allowed;
-            opacity: 0.7;
+            opacity: 0.6;
             filter: grayscale(0.2);
         }
         .pop-active {
@@ -90,30 +90,30 @@
         .tap-hint {
             background: #f9f3e0;
             display: inline-block;
-            margin-top: 16px;
-            padding: 6px 16px;
+            margin-top: 12px;
+            padding: 4px 14px;
             border-radius: 40px;
-            font-size: 12px;
+            font-size: 11px;
             color: #b45309;
         }
         .name-input-section {
-            margin: 20px 0 10px;
+            margin: 16px 0 8px;
             text-align: left;
         }
         .name-input-section label {
-            font-size: 13px;
+            font-size: 12px;
             font-weight: 600;
             color: #1a5d1a;
             display: block;
-            margin-bottom: 6px;
+            margin-bottom: 5px;
         }
         .name-input-section input {
             width: 100%;
-            padding: 12px 16px;
+            padding: 10px 14px;
             border: 2px solid #cbe5cb;
             border-radius: 40px;
             font-family: 'Kanit', sans-serif;
-            font-size: 16px;
+            font-size: 14px;
             background: white;
             outline: none;
             transition: 0.2s;
@@ -130,38 +130,33 @@
             background: #1a5d1a;
             color: white;
             border: none;
-            padding: 10px 20px;
+            padding: 8px 16px;
             border-radius: 40px;
             font-family: 'Kanit', sans-serif;
             font-weight: 600;
-            margin-top: 10px;
+            margin-top: 8px;
             cursor: pointer;
             width: 100%;
-            font-size: 16px;
+            font-size: 14px;
             transition: 0.1s;
         }
         .save-name-btn:active {
             transform: scale(0.97);
             background: #0f3f0f;
         }
-        .save-name-btn.disabled {
-            background: #a0c4a0;
-            cursor: not-allowed;
-            transform: none;
-        }
         .current-user {
             background: #e6f7e6;
-            padding: 8px 12px;
+            padding: 6px 10px;
             border-radius: 40px;
-            font-size: 13px;
-            margin-top: 10px;
+            font-size: 11px;
+            margin-top: 8px;
             color: #1a5d1a;
             display: inline-block;
         }
         .warning-text {
-            color: #dc2626;
-            font-size: 11px;
-            margin-top: 6px;
+            color: #f59e0b;
+            font-size: 10px;
+            margin-top: 5px;
             display: flex;
             align-items: center;
             gap: 4px;
@@ -169,30 +164,34 @@
         .warning-text.success {
             color: #16a34a;
         }
+        
         .leaderboard-section {
-            margin-top: 28px;
+            margin-top: 16px;
             text-align: left;
         }
         .leaderboard-section h3 {
-            border-left: 5px solid #1a5d1a;
-            padding-left: 16px;
-            margin-bottom: 16px;
+            border-left: 4px solid #1a5d1a;
+            padding-left: 12px;
+            margin-bottom: 12px;
             display: flex;
             align-items: center;
-            gap: 10px;
-            font-size: 18px;
+            gap: 8px;
+            font-size: 16px;
         }
         .rank-list {
             background: #ffffffdd;
-            border-radius: 28px;
+            border-radius: 24px;
             overflow: hidden;
+            max-height: 350px;
+            overflow-y: auto;
         }
         .rank-item {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 14px 20px;
+            padding: 10px 16px;
             border-bottom: 1px solid #e9f0e9;
+            font-size: 13px;
         }
         .rank-item:last-child {
             border-bottom: none;
@@ -200,23 +199,36 @@
         .rank-item .name {
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 8px;
             font-weight: 500;
         }
         .rank-item .pts {
             background: #eaf5ea;
-            padding: 4px 12px;
+            padding: 3px 10px;
             border-radius: 40px;
             font-weight: 700;
             color: #1a5d1a;
+            font-size: 12px;
         }
-        .footer-note {
-            font-size: 10px;
-            text-align: center;
-            margin-top: 24px;
-            color: #688f68;
+        
+        /* ข้อความด้านล่าง - ที่เดียวตามที่ขอ */
+        .fair-play-footer {
+            margin-top: 20px;
+            padding-top: 12px;
             border-top: 1px dashed #cbe5cb;
-            padding-top: 14px;
+            font-size: 10px;
+            color: #b45309;
+            text-align: center;
+            background: #fef9e3;
+            border-radius: 20px;
+            padding: 10px 12px;
+        }
+        
+        .footer-note {
+            font-size: 9px;
+            text-align: center;
+            margin-top: 12px;
+            color: #688f68;
         }
         .toast-msg {
             position: fixed;
@@ -225,9 +237,9 @@
             transform: translateX(-50%);
             background: #1a5d1a;
             color: #fef9c3;
-            padding: 8px 20px;
+            padding: 6px 16px;
             border-radius: 40px;
-            font-size: 14px;
+            font-size: 12px;
             z-index: 1000;
             white-space: nowrap;
             font-weight: 500;
@@ -236,7 +248,9 @@
             background: #dc2626;
         }
         @media (max-width: 460px) {
-            #pop-img { width: 180px; }
+            #pop-img { width: 150px; }
+            .main-card { padding: 20px 16px 24px; }
+            .fair-play-footer { font-size: 9px; padding: 8px 10px; }
         }
     </style>
 </head>
@@ -266,11 +280,11 @@
 
     <!-- ช่องกรอกชื่อผู้เล่น -->
     <div class="name-input-section">
-        <label><i class="fas fa-user"></i> ชื่อผู้เล่น <span style="color:#dc2626;">*</span></label>
+        <label><i class="fas fa-user"></i> ชื่อผู้เล่น</label>
         <input type="text" id="playerNameInput" placeholder="กรุณากรอกชื่อที่สุภาพ" maxlength="24" autocomplete="off">
         <button class="save-name-btn" id="saveNameBtn">▶ บันทึกชื่อและเริ่มเล่น</button>
         <div class="warning-text" id="warningText">
-            <i class="fas fa-shield-alt"></i> กรุณากรอกชื่อที่สุภาพ (ห้ามใช้คำหยาบคาย)
+            <i class="fas fa-info-circle"></i> กรอกชื่อเพื่อสะสมคะแนนและแสดงในอันดับ
         </div>
         <div id="currentUserDisplay" class="current-user" style="display: none;"></div>
     </div>
@@ -278,9 +292,17 @@
     <div class="leaderboard-section">
         <h3><i class="fas fa-trophy" style="color:#fbbf24;"></i> อันดับนักกดสูงสุด</h3>
         <div id="rank-list" class="rank-list">
-            <div style="padding:20px; text-align:center; color:#688f68;">กรอกชื่อที่สุภาพและเริ่มเล่นได้เลย!</div>
+            <div style="padding:16px; text-align:center; color:#688f68; font-size:12px;">กำลังโหลดอันดับ...</div>
         </div>
     </div>
+    
+    <!-- ข้อความฟิวแบบไม่ทำเพื่อผลประโยชน์ - ไว้ด้านล่างที่เดียว -->
+    <div class="fair-play-footer">
+        <i class="fas fa-heart"></i>
+        ฟิวแบบไม่ทำเพื่อผลประโยชน์ใดอื่น และไม่โจมตีฝ่ายใด — เล่นเพื่อความสนุกเท่านั้น
+        <i class="fas fa-smile-wink"></i>
+    </div>
+    
     <div class="footer-note">
         <i class="fas fa-database"></i> บันทึกคะแนนในเบราว์เซอร์ • กดเยอะ เลเวลพุ่ง!
     </div>
@@ -289,33 +311,23 @@
 <script>
     // ==================== รายชื่อคำต้องห้าม (ไม่สุภาพ) ====================
     const inappropriateWords = [
-        // คำหยาบคายภาษาไทย
         "เหี้ย", "สัส", "สัด", "ควย", "จู๋", "หี", "แตด", "ตูด", "ชาติชั่ว", "อีดอก", "อีเหี้ย", "ไอ้เหี้ย",
         "มึง", "กู", "แม่ง", "เอ็ง", "โคตร", "ส้นตีน", "กระจอก", "บักหำ", "ไอ้สาด", "อีสาด", "เข้", "กระเทย",
-        "กะเทย", "สาวประเภทสอง", "ลำไย", "บักค่อม", "อีตัว", "เด็กเลี้ยง", "ร่าน", "หญิงโสเภณี", "โสเภณี",
-        // คำหยาบคายภาษาอังกฤษ
+        "กะเทย", "ลำไย", "บักค่อม", "อีตัว", "ร่าน", "โสเภณี",
         "fuck", "shit", "bitch", "asshole", "damn", "cunt", "dick", "pussy", "bastard", "whore",
-        "slut", "cock", "motherfucker", "faggot", "retard", "stupid", "idiot", "moron", "dumbass",
-        // คำที่สื่อถึงยาเสพติด
+        "slut", "cock", "motherfucker", "faggot", "retard",
         "ยาเสพติด", "บุหรี่", "สุรา", "เหล้า", "เบียร์", "ไอซ์", "ยาบ้า", "กระท่อม", "กัญชา", "weed",
-        // คำที่สื่อถึงความรุนแรง
         "ตาย", "ฆ่า", "มรณะ", "เลือด", "ประหาร", "เผา", "ระเบิด"
     ];
     
-    // ฟังก์ชันตรวจสอบชื่อไม่สุภาพ
     function isInappropriateName(name) {
         if (!name || name.trim() === "") return true;
-        
         let checkName = name.trim().toLowerCase();
-        
-        // 1. ตรวจสอบคำต้องห้าม
         for (let badWord of inappropriateWords) {
             if (checkName.includes(badWord.toLowerCase())) {
                 return true;
             }
         }
-        
-        // 2. ตรวจสอบตัวอักษรซ้ำซ้อนเกินไป (เช่น กกกก, 1111, ㅋㅋㅋ)
         if (checkName.length >= 3) {
             let sameCharCount = 1;
             let maxSame = 1;
@@ -327,42 +339,21 @@
                     sameCharCount = 1;
                 }
             }
-            // ถ้าตัวอักษรซ้ำกันเกิน 3 ตัวติดต่อกัน
-            if (maxSame >= 4) {
-                return true;
-            }
+            if (maxSame >= 4) return true;
         }
-        
-        // 3. ตรวจสอบว่ามีตัวอักษรภาษาไทยหรือภาษาอังกฤษอย่างน้อย 1 ตัว (ห้ามเว้นว่างหรือมีแต่สัญลักษณ์)
         const hasThai = /[\u0E00-\u0E7F]/.test(checkName);
         const hasEng = /[a-zA-Z]/.test(checkName);
         const hasNumber = /[0-9]/.test(checkName);
-        
-        // ต้องมีตัวอักษร (ไทยหรืออังกฤษ) อย่างน้อย 1 ตัว
-        if (!hasThai && !hasEng && !hasNumber) {
-            return true;
-        }
-        
-        // 4. ตรวจสอบความยาว (อย่างน้อย 1 ตัวอักษร)
-        if (checkName.length < 1) {
-            return true;
-        }
-        
-        // 5. ตรวจสอบชื่อที่ขึ้นต้นด้วยตัวเลขหรือสัญลักษณ์พิเศษ (ไม่ควร)
+        if (!hasThai && !hasEng && !hasNumber) return true;
+        if (checkName.length < 1) return true;
         const firstChar = checkName[0];
-        if (/[0-9!@#$%^&*()_+=\-[\]{};:'"\\|,.<>/?~`]/.test(firstChar)) {
-            return true;
-        }
-        
+        if (/[0-9!@#$%^&*()_+=\-[\]{};:'"\\|,.<>/?~`]/.test(firstChar)) return true;
         return false;
     }
     
-    // ฟังก์ชันทำความสะอาดชื่อ (ตัดอักษรไม่เหมาะสม)
     function sanitizeName(name) {
         let clean = name.trim();
-        // ตัดอักขระพิเศษที่ไม่เหมาะสมออก (เหลือเฉพาะ ไทย, อังกฤษ, ตัวเลข, เว้นวรรค)
         clean = clean.replace(/[^\u0E00-\u0E7Fa-zA-Z0-9\s]/g, '');
-        // ตัดช่องว่างต้น-ท้าย
         clean = clean.trim();
         if (clean === "") return "นักท่องอุทยาน";
         return clean.substring(0, 24);
@@ -397,12 +388,12 @@
         if (enabled) {
             popImg.classList.remove('disabled');
             tapHint.innerHTML = '<i class="fas fa-hand-peace"></i> กดที่รูปเพื่อเพิ่มคะแนน! <i class="fas fa-fire"></i>';
-            warningText.innerHTML = '<i class="fas fa-check-circle"></i> กำลังเล่นด้วยชื่อที่สุภาพ  <i class="fas fa-smile"></i>';
+            warningText.innerHTML = '<i class="fas fa-check-circle"></i> กำลังเล่นด้วยชื่อ: ' + playerName;
             warningText.className = "warning-text success";
         } else {
             popImg.classList.add('disabled');
-            tapHint.innerHTML = '<i class="fas fa-hand-peace"></i> กรอกชื่อที่สุภาพเพื่อเริ่มเล่น! <i class="fas fa-fire"></i>';
-            warningText.innerHTML = '<i class="fas fa-shield-alt"></i> กรุณากรอกชื่อที่สุภาพ (ห้ามใช้คำหยาบคาย)';
+            tapHint.innerHTML = '<i class="fas fa-hand-peace"></i> กรอกชื่อที่สุภาพเพื่อเริ่มเล่น!';
+            warningText.innerHTML = '<i class="fas fa-info-circle"></i> กรอกชื่อเพื่อสะสมคะแนนและแสดงในอันดับ';
             warningText.className = "warning-text";
         }
     }
@@ -470,7 +461,7 @@
         if (!rankContainer) return;
         
         if (!stored) {
-            rankContainer.innerHTML = '<div style="padding:20px; text-align:center;">ยังไม่มีผู้เล่น กรอกชื่อที่สุภาพและกดรูปเป็นคนแรก!</div>';
+            rankContainer.innerHTML = '<div style="padding:16px; text-align:center; color:#688f68; font-size:12px;"><i class="fas fa-users"></i> ยังไม่มีผู้เล่น</div>';
             return;
         }
         
@@ -478,37 +469,40 @@
         try {
             players = JSON.parse(stored);
         } catch(e) {
-            rankContainer.innerHTML = '<div style="padding:20px; text-align:center;">โหลดอันดับผิดพลาด</div>';
+            rankContainer.innerHTML = '<div style="padding:16px; text-align:center; color:#dc2626; font-size:12px;">โหลดอันดับผิดพลาด</div>';
             return;
         }
         
         if (players.length === 0) {
-            rankContainer.innerHTML = '<div style="padding:20px; text-align:center;">ยังไม่มีผู้เล่น กรอกชื่อที่สุภาพและเริ่มกดรูปเลย!</div>';
+            rankContainer.innerHTML = '<div style="padding:16px; text-align:center; color:#688f68; font-size:12px;">ยังไม่มีผู้เล่น</div>';
             return;
         }
         
+        players.sort((a,b) => b.score - a.score);
+        
         let html = '';
-        players.slice(0, 10).forEach((p, idx) => {
+        players.slice(0, 15).forEach((p, idx) => {
             let medal = '';
             if (idx === 0) medal = '<i class="fas fa-crown" style="color:#f59e0b;"></i> ';
             else if (idx === 1) medal = '<i class="fas fa-medal" style="color:#a0a0a0;"></i> ';
             else if (idx === 2) medal = '<i class="fas fa-medal" style="color:#cd7f32;"></i> ';
             else medal = `<span style="width:24px; display:inline-block; text-align:center;">${idx+1}</span> `;
             
-            let displayName = p.name.length > 18 ? p.name.slice(0,16)+".." : p.name;
+            let displayName = p.name.length > 16 ? p.name.slice(0,14)+".." : p.name;
             let isCurrentUser = (p.name === playerName);
             
             html += `
-                <div class="rank-item" style="${isCurrentUser ? 'background:#e8f5e9;' : ''}">
+                <div class="rank-item" style="${isCurrentUser ? 'background:#e8f5e9; border-left: 3px solid #1a5d1a;' : ''}">
                     <span class="name">
                         ${medal} 
-                        <span>${displayName}${isCurrentUser ? ' (คุณ)' : ''}</span>
-                        <span style="font-size:10px; background:#e4f0e4; padding:2px 6px; border-radius:30px;">Lv.${p.level || Math.floor(p.score/50)+1}</span>
+                        <span>${displayName}${isCurrentUser ? ' <span style="color:#1a5d1a; font-size:9px;">(คุณ)</span>' : ''}</span>
+                        <span style="font-size:9px; background:#e4f0e4; padding:2px 6px; border-radius:30px;">Lv.${p.level || Math.floor(p.score/50)+1}</span>
                     </span>
-                    <span class="pts">${p.score.toLocaleString()} <i class="fas fa-bolt"></i></span>
+                    <span class="pts">${p.score.toLocaleString()} <i class="fas fa-bolt" style="font-size:9px;"></i></span>
                 </div>
             `;
         });
+        
         rankContainer.innerHTML = html;
     }
     
@@ -542,11 +536,9 @@
         addScore();
     }
     
-    // บันทึกชื่อผู้เล่น (พร้อมตรวจสอบความสุภาพ)
     function savePlayerName() {
         let rawName = playerNameInput.value.trim();
         
-        // ตรวจสอบชื่อไม่สุภาพ
         if (isInappropriateName(rawName)) {
             showToast("⚠️ ไม่สามารถใช้ชื่อนี้ได้ กรุณากรอกชื่อที่สุภาพ", 2500, true);
             playerNameInput.classList.add('error');
@@ -555,16 +547,14 @@
             return;
         }
         
-        // ทำความสะอาดชื่อ
         let cleanName = sanitizeName(rawName);
         if (cleanName === "" || cleanName.length < 1) {
-            showToast("⚠️ กรุณากรอกชื่อที่สุภาพ (ตัวอักษรภาษาไทยหรืออังกฤษ)", 2000, true);
+            showToast("⚠️ กรุณากรอกชื่อที่สุภาพ", 2000, true);
             playerNameInput.classList.add('error');
             playerNameInput.focus();
             return;
         }
         
-        // ตรวจสอบอีกครั้งหลังจากทำความสะอาด
         if (isInappropriateName(cleanName)) {
             showToast("⚠️ ชื่อนี้ไม่เหมาะสม กรุณากรอกชื่ออื่น", 2000, true);
             playerNameInput.classList.add('error');
@@ -575,19 +565,17 @@
         
         playerNameInput.classList.remove('error');
         
-        // ถ้ามีชื่อเดิมและเปลี่ยนชื่อ
         if (playerName !== "" && playerName !== cleanName) {
             playerName = cleanName;
             playerNameInput.value = playerName;
             loadPlayerScore();
             updateCurrentUserDisplay();
             setGameEnabled(true);
-            showToast(`✅ เปลี่ยนชื่อเป็น ${playerName} เรียบร้อย`, 1500);
+            showToast(`✅ เปลี่ยนชื่อเป็น ${playerName}`, 1500);
             updateLeaderboard();
             saveNameBtn.innerHTML = '✏️ เปลี่ยนชื่อ';
         } 
         else if (playerName === "") {
-            // ครั้งแรก
             playerName = cleanName;
             playerNameInput.value = playerName;
             loadPlayerScore();
@@ -634,15 +622,18 @@
             }
         });
         
-        // ลบ error class เมื่อเริ่มพิมพ์
         playerNameInput.addEventListener('input', () => {
             playerNameInput.classList.remove('error');
         });
     }
     
+    function loadInitialLeaderboard() {
+        updateLeaderboard();
+    }
+    
     window.onload = () => {
         bindEvents();
-        updateLeaderboard();
+        loadInitialLeaderboard();
         setGameEnabled(false);
         playerNameInput.focus();
     };
