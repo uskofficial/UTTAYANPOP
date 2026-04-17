@@ -33,30 +33,28 @@
             padding: 24px 20px 28px;
             text-align: center;
             box-shadow: 0 20px 35px -12px rgba(0, 0, 0, 0.15);
+            position: relative;
         }
         .logo {
             width: 60px;
             margin-bottom: 6px;
         }
-
-        /* --- ส่วนที่ปรับขนาดรูปภาพหัวข้อให้ใหญ่ขึ้น --- */
         .title-container {
-            margin: 5px 0 15px; /* เพิ่มระยะห่างบน-ล่าง */
+            margin: 5px 0 15px;
             display: flex;
             justify-content: center;
             align-items: center;
         }
         .title-image {
-            width: 100%; /* ให้ยืดตาม container */
-            max-width: 380px; /* ปรับความใหญ่สูงสุดตรงนี้ (เพิ่มจากเดิม 240px) */
+            width: 100%;
+            max-width: 380px;
             height: auto;
-            filter: drop-shadow(0 8px 15px rgba(0, 0, 0, 0.12)); /* เพิ่มเงาให้ดูมีมิติ */
+            filter: drop-shadow(0 8px 15px rgba(0, 0, 0, 0.12));
             transition: transform 0.3s ease;
         }
         .title-image:hover {
-            transform: scale(1.02); /* ลูกเล่นเวลาเอาเมาส์วางแล้วขยับนิดหน่อย */
+            transform: scale(1.02);
         }
-
         .badge {
             background: #f0fdf4;
             display: inline-flex;
@@ -86,6 +84,7 @@
             font-size: 28px;
             font-weight: 800;
             color: #1a5d1a;
+            word-break: break-word;
         }
         #pop-img {
             width: 180px;
@@ -213,6 +212,7 @@
             align-items: center;
             gap: 8px;
             font-weight: 500;
+            flex-wrap: wrap;
         }
         .rank-item .pts {
             background: #eaf5ea;
@@ -221,6 +221,41 @@
             font-weight: 700;
             color: #1a5d1a;
             font-size: 12px;
+            white-space: nowrap;
+        }
+        
+        /* ถ้วยรางวัล */
+        .trophy-gold { color: #fbbf24; font-size: 16px; }
+        .trophy-silver { color: #9ca3af; font-size: 16px; }
+        .trophy-bronze { color: #cd7f32; font-size: 16px; }
+        
+        /* พุ่งแสดงความยินดี */
+        .congrats-pop {
+            position: fixed;
+            bottom: 20%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(135deg, #ffd89b, #c7e9fb);
+            color: #b45309;
+            font-weight: bold;
+            padding: 8px 20px;
+            border-radius: 60px;
+            font-size: 18px;
+            font-family: 'Kanit', sans-serif;
+            white-space: nowrap;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+            z-index: 2000;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            animation: popFly 0.5s ease-out forwards;
+            pointer-events: none;
+        }
+        @keyframes popFly {
+            0% { opacity: 0; transform: translateX(-50%) scale(0.5); bottom: 15%; }
+            20% { opacity: 1; transform: translateX(-50%) scale(1.1); }
+            80% { opacity: 1; transform: translateX(-50%) scale(1); }
+            100% { opacity: 0; transform: translateX(-50%) translateY(-40px) scale(0.8); bottom: 30%; display: none; }
         }
         
         .show-more-btn, .hide-more-btn {
@@ -290,13 +325,15 @@
             gap: 4px;
         }
         
-        /* การปรับแต่งขนาดสำหรับหน้าจอเล็ก (Responsive) */
         @media (max-width: 460px) {
             #pop-img { width: 150px; }
             .main-card { padding: 20px 16px 24px; }
             .fair-play-footer { font-size: 9px; padding: 8px 10px; }
             .rank-item { padding: 8px 12px; font-size: 12px; }
-            .title-image { max-width: 300px; } /* บนมือถือให้เล็กลงมาหน่อยเพื่อไม่ให้ชิดขอบเกินไป */
+            .rank-item .pts { font-size: 10px; white-space: normal; word-break: break-word; }
+            .title-image { max-width: 300px; }
+            .congrats-pop { font-size: 14px; padding: 6px 16px; white-space: nowrap; }
+            .stat-card div { font-size: 22px; }
         }
     </style>
 </head>
@@ -360,7 +397,7 @@
 </div>
 
 <script>
-    // ==================== FIREBASE CONFIG (Sun ใช้ตัวเดิมได้เลยครับ) ====================
+    // ==================== FIREBASE CONFIG ====================
     const firebaseConfig = {
         apiKey: "AIzaSyDXVXeobHQE_MrUcfyvK-G16gtGa8bdEHc",
         authDomain: "uttayanpop.firebaseapp.com",
@@ -377,7 +414,7 @@
     const db = firebase.database();
     
     // ==================== ระบบจัดการคำไม่เหมาะสม ====================
-    const inappropriateWords = ["เหี้ย", "สัส", "ควย", "fuck", "shit", "ยาบ้า", "ส้นตีน", "กระจอก"]; // สามารถเพิ่มได้ตามใจครับ
+    const inappropriateWords = ["เหี้ย", "สัส", "ควย", "fuck", "shit", "ยาบ้า", "ส้นตีน", "กระจอก", "สัด", "ไอ้", "มึง", "กู"];
     
     function isInappropriateName(name) {
         if (!name || name.trim() === "") return true;
@@ -401,6 +438,9 @@
     let showFullRank = false;
     let allPlayers = [];
     
+    // เก็บเวลาที่แสดง "พุ่ง" ของผู้เล่นอันดับ1
+    let congratsShownTime = {}; 
+    
     const popImg = document.getElementById('pop-img');
     const scoreEl = document.getElementById('score');
     const lvEl = document.getElementById('lv');
@@ -415,10 +455,12 @@
     function calcLevel(score) { return Math.floor(score / 50) + 1; }
     
     function updateUI() {
-        scoreEl.innerText = currentScore.toLocaleString();
+        // แสดงตัวเลขเต็ม ไม่มีเลขยกกำลัง หรือ M/K
+        scoreEl.innerText = currentScore.toLocaleString('en-US');
         lvEl.innerText = currentLevel;
         if (playerName) {
             currentUserDisplay.innerHTML = `<i class="fas fa-user-check"></i> กำลังเล่น: ${playerName}`;
+            currentUserDisplay.style.display = "inline-block";
         }
     }
     
@@ -460,7 +502,29 @@
             updateUI();
             setGameEnabled(true);
             showToast(`สวัสดี ${playerName}!`, 1500);
+        }).catch(err => {
+            console.error(err);
+            setGameEnabled(true);
         });
+    }
+    
+    function showCongratsForRankOne(rankOneName) {
+        if (!rankOneName) return;
+        const now = Date.now();
+        const lastShown = congratsShownTime[rankOneName] || 0;
+        // ถ้าเคยแสดงแล้วและยังไม่ครบ 3 นาที (180000 ms) -> ไม่แสดงอีก
+        if (lastShown && (now - lastShown) < 180000) {
+            return;
+        }
+        congratsShownTime[rankOneName] = now;
+        
+        const popDiv = document.createElement('div');
+        popDiv.className = 'congrats-pop';
+        popDiv.innerHTML = `<i class="fas fa-crown" style="color:#f59e0b;"></i> พุ่ง! ${rankOneName} ครองอันดับ 1 <i class="fas fa-rocket"></i>`;
+        document.body.appendChild(popDiv);
+        setTimeout(() => {
+            if(popDiv && popDiv.remove) popDiv.remove();
+        }, 1000);
     }
     
     function listenLeaderboard() {
@@ -473,6 +537,13 @@
             players.sort((a,b) => b.score - a.score);
             allPlayers = players;
             renderLeaderboard();
+            
+            if (allPlayers.length > 0) {
+                const rankOne = allPlayers[0];
+                if (rankOne && rankOne.name) {
+                    showCongratsForRankOne(rankOne.name);
+                }
+            }
         });
     }
     
@@ -486,20 +557,32 @@
         for (let i = 0; i < Math.min(limit, allPlayers.length); i++) {
             const p = allPlayers[i];
             const isMe = (p.name === playerName);
+            let trophyHtml = '';
+            if (i === 0) trophyHtml = '<i class="fas fa-crown trophy-gold"></i>';
+            else if (i === 1) trophyHtml = '<i class="fas fa-medal trophy-silver"></i>';
+            else if (i === 2) trophyHtml = '<i class="fas fa-medal trophy-bronze"></i>';
+            
+            // แสดงคะแนนเต็มรูปแบบ ไม่ย่อ
+            const displayScore = p.score.toLocaleString('en-US');
+            
             html += `
                 <div class="rank-item" style="${isMe ? 'background:#e8f5e9;' : ''}">
-                    <span class="name"><b>${i+1}.</b> ${p.name} <small>Lv.${p.level}</small></span>
-                    <span class="pts">${p.score.toLocaleString()} <i class="fas fa-bolt"></i></span>
+                    <span class="name">
+                        <b>${i+1}.</b> 
+                        ${trophyHtml} 
+                        ${p.name} <small>Lv.${p.level}</small>
+                    </span>
+                    <span class="pts">${displayScore} <i class="fas fa-bolt"></i></span>
                 </div>
             `;
         }
         if (allPlayers.length > 5) {
-            html += `<button class="show-more-btn" onclick="toggleRank()">${showFullRank ? 'ย่อหน้าต่าง' : 'ดูทั้งหมด'}</button>`;
+            html += `<button class="show-more-btn" onclick="window.toggleRank()">${showFullRank ? 'ย่อหน้าต่าง' : 'ดูทั้งหมด'}</button>`;
         }
         rankContainer.innerHTML = html;
     }
 
-    function toggleRank() { showFullRank = !showFullRank; renderLeaderboard(); }
+    window.toggleRank = function() { showFullRank = !showFullRank; renderLeaderboard(); };
     
     function addScore() {
         if (!isGameReady) return showToast("กรอกชื่อก่อนนะ!", 1000, true);
@@ -514,10 +597,12 @@
     
     function savePlayerName() {
         let name = playerNameInput.value.trim();
-        if (isInappropriateName(name)) return showToast("ชื่อไม่สุภาพ!", 2000, true);
+        if (isInappropriateName(name)) return showToast("ชื่อไม่สุภาพ หรือมีคำหยาบ!", 2000, true);
         playerName = sanitizeName(name);
+        setGameEnabled(false);
         loadPlayerScoreFromFirebase();
         saveNameBtn.innerHTML = '✏️ เปลี่ยนชื่อ';
+        playerNameInput.value = playerName;
     }
     
     function showToast(msg, dur=2000, err=false) {
