@@ -182,8 +182,6 @@
             background: #ffffffdd;
             border-radius: 24px;
             overflow: hidden;
-            max-height: 350px;
-            overflow-y: auto;
         }
         .rank-item {
             display: flex;
@@ -211,7 +209,50 @@
             font-size: 12px;
         }
         
-        /* ข้อความด้านล่าง - ที่เดียวตามที่ขอ */
+        /* ปุ่มดูเพิ่มเติม */
+        .show-more-btn {
+            background: none;
+            border: none;
+            color: #1a5d1a;
+            font-size: 12px;
+            font-family: 'Kanit', sans-serif;
+            padding: 12px;
+            width: 100%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            border-top: 1px dashed #cbe5cb;
+            margin-top: 4px;
+            transition: 0.1s;
+        }
+        .show-more-btn:active {
+            background: #e8f5e9;
+            border-radius: 0 0 24px 24px;
+        }
+        .hide-more-btn {
+            background: none;
+            border: none;
+            color: #1a5d1a;
+            font-size: 12px;
+            font-family: 'Kanit', sans-serif;
+            padding: 12px;
+            width: 100%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            border-top: 1px dashed #cbe5cb;
+            margin-top: 4px;
+            transition: 0.1s;
+        }
+        .hide-more-btn:active {
+            background: #e8f5e9;
+        }
+        
+        /* ข้อความด้านล่าง */
         .fair-play-footer {
             margin-top: 20px;
             padding-top: 12px;
@@ -251,6 +292,7 @@
             #pop-img { width: 150px; }
             .main-card { padding: 20px 16px 24px; }
             .fair-play-footer { font-size: 9px; padding: 8px 10px; }
+            .rank-item { padding: 8px 12px; font-size: 12px; }
         }
     </style>
 </head>
@@ -296,7 +338,7 @@
         </div>
     </div>
     
-    <!-- ข้อความฟิวแบบไม่ทำเพื่อผลประโยชน์ - ไว้ด้านล่างที่เดียว -->
+    <!-- ข้อความด้านล่าง -->
     <div class="fair-play-footer">
         <i class="fas fa-heart"></i>
         ฟิวแบบไม่ทำเพื่อผลประโยชน์ใดอื่น และไม่โจมตีฝ่ายใด — เล่นเพื่อความสนุกเท่านั้น
@@ -309,7 +351,7 @@
 </div>
 
 <script>
-    // ==================== รายชื่อคำต้องห้าม (ไม่สุภาพ) ====================
+    // ==================== รายชื่อคำต้องห้าม ====================
     const inappropriateWords = [
         "เหี้ย", "สัส", "สัด", "ควย", "จู๋", "หี", "แตด", "ตูด", "ชาติชั่ว", "อีดอก", "อีเหี้ย", "ไอ้เหี้ย",
         "มึง", "กู", "แม่ง", "เอ็ง", "โคตร", "ส้นตีน", "กระจอก", "บักหำ", "ไอ้สาด", "อีสาด", "เข้", "กระเทย",
@@ -364,6 +406,7 @@
     let currentLevel = 1;
     let playerName = "";
     let isGameReady = false;
+    let showFullRank = false;  // สถานะแสดงอันดับทั้งหมด
     
     const popImg = document.getElementById('pop-img');
     const scoreEl = document.getElementById('score');
@@ -373,6 +416,7 @@
     const currentUserDisplay = document.getElementById('currentUserDisplay');
     const tapHint = document.getElementById('tapHint');
     const warningText = document.getElementById('warningText');
+    const rankContainer = document.getElementById('rank-list');
     
     function calcLevel(score) {
         return Math.floor(score / 50) + 1;
@@ -424,7 +468,7 @@
         }
         
         allPlayers.sort((a,b) => b.score - a.score);
-        if (allPlayers.length > 20) allPlayers = allPlayers.slice(0,20);
+        if (allPlayers.length > 30) allPlayers = allPlayers.slice(0,30);
         localStorage.setItem('uttayanPopRanking', JSON.stringify(allPlayers));
         
         updateLeaderboard();
@@ -457,7 +501,6 @@
     
     function updateLeaderboard() {
         const stored = localStorage.getItem('uttayanPopRanking');
-        const rankContainer = document.getElementById('rank-list');
         if (!rankContainer) return;
         
         if (!stored) {
@@ -480,8 +523,14 @@
         
         players.sort((a,b) => b.score - a.score);
         
+        // แสดงเฉพาะ 5 อันดับแรก หรือทั้งหมด ขึ้นอยู่กับสถานะ
+        const displayLimit = showFullRank ? players.length : Math.min(5, players.length);
+        const hasMore = players.length > 5;
+        
         let html = '';
-        players.slice(0, 15).forEach((p, idx) => {
+        for (let i = 0; i < displayLimit; i++) {
+            const p = players[i];
+            const idx = i;
             let medal = '';
             if (idx === 0) medal = '<i class="fas fa-crown" style="color:#f59e0b;"></i> ';
             else if (idx === 1) medal = '<i class="fas fa-medal" style="color:#a0a0a0;"></i> ';
@@ -501,9 +550,44 @@
                     <span class="pts">${p.score.toLocaleString()} <i class="fas fa-bolt" style="font-size:9px;"></i></span>
                 </div>
             `;
-        });
+        }
+        
+        // เพิ่มปุ่มดูเพิ่มเติม/แสดงน้อยลง
+        if (hasMore) {
+            if (!showFullRank) {
+                html += `
+                    <button class="show-more-btn" id="showMoreBtn">
+                        <i class="fas fa-chevron-down"></i> ดูเพิ่มเติม (${players.length - 5} อันดับ) <i class="fas fa-chevron-down"></i>
+                    </button>
+                `;
+            } else {
+                html += `
+                    <button class="hide-more-btn" id="hideMoreBtn">
+                        <i class="fas fa-chevron-up"></i> แสดงเฉพาะ 5 อันดับแรก <i class="fas fa-chevron-up"></i>
+                    </button>
+                `;
+            }
+        }
         
         rankContainer.innerHTML = html;
+        
+        // ผูก event ให้ปุ่มใหม่
+        const showMoreBtn = document.getElementById('showMoreBtn');
+        const hideMoreBtn = document.getElementById('hideMoreBtn');
+        
+        if (showMoreBtn) {
+            showMoreBtn.addEventListener('click', () => {
+                showFullRank = true;
+                updateLeaderboard();
+            });
+        }
+        
+        if (hideMoreBtn) {
+            hideMoreBtn.addEventListener('click', () => {
+                showFullRank = false;
+                updateLeaderboard();
+            });
+        }
     }
     
     function addScore() {
