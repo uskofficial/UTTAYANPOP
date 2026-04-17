@@ -6,6 +6,9 @@
     <title>อุทยานป็อบ · UTTAYAN POP</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
     <style>
         * {
             margin: 0;
@@ -209,8 +212,7 @@
             font-size: 12px;
         }
         
-        /* ปุ่มดูเพิ่มเติม */
-        .show-more-btn {
+        .show-more-btn, .hide-more-btn {
             background: none;
             border: none;
             color: #1a5d1a;
@@ -227,32 +229,11 @@
             margin-top: 4px;
             transition: 0.1s;
         }
-        .show-more-btn:active {
+        .show-more-btn:active, .hide-more-btn:active {
             background: #e8f5e9;
             border-radius: 0 0 24px 24px;
         }
-        .hide-more-btn {
-            background: none;
-            border: none;
-            color: #1a5d1a;
-            font-size: 12px;
-            font-family: 'Kanit', sans-serif;
-            padding: 12px;
-            width: 100%;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 6px;
-            border-top: 1px dashed #cbe5cb;
-            margin-top: 4px;
-            transition: 0.1s;
-        }
-        .hide-more-btn:active {
-            background: #e8f5e9;
-        }
         
-        /* ข้อความด้านล่าง */
         .fair-play-footer {
             margin-top: 20px;
             padding-top: 12px;
@@ -288,6 +269,15 @@
         .toast-msg.error {
             background: #dc2626;
         }
+        .online-status {
+            font-size: 9px;
+            color: #16a34a;
+            margin-top: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+        }
         @media (max-width: 460px) {
             #pop-img { width: 150px; }
             .main-card { padding: 20px 16px 24px; }
@@ -320,7 +310,6 @@
         <i class="fas fa-fire"></i>
     </div>
 
-    <!-- ช่องกรอกชื่อผู้เล่น -->
     <div class="name-input-section">
         <label><i class="fas fa-user"></i> ชื่อผู้เล่น</label>
         <input type="text" id="playerNameInput" placeholder="กรุณากรอกชื่อที่สุภาพ" maxlength="24" autocomplete="off">
@@ -332,13 +321,12 @@
     </div>
 
     <div class="leaderboard-section">
-        <h3><i class="fas fa-trophy" style="color:#fbbf24;"></i> อันดับนักกดสูงสุด</h3>
+        <h3><i class="fas fa-trophy" style="color:#fbbf24;"></i> อันดับนักกดสูงสุด <span style="font-size:10px;">(แบบเรียลไทม์)</span></h3>
         <div id="rank-list" class="rank-list">
             <div style="padding:16px; text-align:center; color:#688f68; font-size:12px;">กำลังโหลดอันดับ...</div>
         </div>
     </div>
     
-    <!-- ข้อความด้านล่าง -->
     <div class="fair-play-footer">
         <i class="fas fa-heart"></i>
         ฟิวแบบไม่ทำเพื่อผลประโยชน์ใดอื่น และไม่โจมตีฝ่ายใด — เล่นเพื่อความสนุกเท่านั้น
@@ -346,40 +334,51 @@
     </div>
     
     <div class="footer-note">
-        <i class="fas fa-database"></i> บันทึกคะแนนในเบราว์เซอร์ • กดเยอะ เลเวลพุ่ง!
+        <i class="fas fa-globe"></i> อัปเดตเรียลไทม์ทุกคน • กดเยอะ เลเวลพุ่ง!
+    </div>
+    <div class="online-status" id="onlineStatus">
+        <i class="fas fa-circle" style="color:#16a34a; font-size:6px;"></i> เชื่อมต่อออนไลน์
     </div>
 </div>
 
 <script>
+    // ==================== FIREBASE CONFIG ====================
+    const firebaseConfig = {
+        apiKey: "AIzaSyDXVXeobHQE_MrUcfyvK-G16gtGa8bdEHc",
+        authDomain: "uttayanpop.firebaseapp.com",
+        databaseURL: "https://uttayanpop-default-rtdb.asia-southeast1.firebasedatabase.app/",
+        projectId: "uttayanpop",
+        storageBucket: "uttayanpop.firebasestorage.app",
+        messagingSenderId: "740525391264",
+        appId: "1:740525391264:web:4ab7ddafb1ad75d4aab8c5"
+    };
+    
+    if (!firebase.apps.length) {
+        firebase.initializeApp(firebaseConfig);
+    }
+    const db = firebase.database();
+    
     // ==================== รายชื่อคำต้องห้าม ====================
     const inappropriateWords = [
-        "เหี้ย", "สัส", "สัด", "ควย", "จู๋", "หี", "แตด", "ตูด", "ชาติชั่ว", "อีดอก", "อีเหี้ย", "ไอ้เหี้ย",
-        "มึง", "กู", "แม่ง", "เอ็ง", "โคตร", "ส้นตีน", "กระจอก", "บักหำ", "ไอ้สาด", "อีสาด", "เข้", "กระเทย",
-        "กะเทย", "ลำไย", "บักค่อม", "อีตัว", "ร่าน", "โสเภณี",
+        "เหี้ย", "สัส", "สัด", "ควย", "จู๋", "หี", "แตด", "ตูด", "อีดอก", "อีเหี้ย", "ไอ้เหี้ย",
+        "มึง", "กู", "แม่ง", "เอ็ง", "โคตร", "ส้นตีน", "กระจอก", "บักหำ", "ไอ้สาด", "อีสาด",
         "fuck", "shit", "bitch", "asshole", "damn", "cunt", "dick", "pussy", "bastard", "whore",
-        "slut", "cock", "motherfucker", "faggot", "retard",
-        "ยาเสพติด", "บุหรี่", "สุรา", "เหล้า", "เบียร์", "ไอซ์", "ยาบ้า", "กระท่อม", "กัญชา", "weed",
-        "ตาย", "ฆ่า", "มรณะ", "เลือด", "ประหาร", "เผา", "ระเบิด"
+        "slut", "cock", "motherfucker", "faggot", "retard", "ยาเสพติด", "บุหรี่", "เหล้า", "เบียร์", "ยาบ้า"
     ];
     
     function isInappropriateName(name) {
         if (!name || name.trim() === "") return true;
         let checkName = name.trim().toLowerCase();
         for (let badWord of inappropriateWords) {
-            if (checkName.includes(badWord.toLowerCase())) {
-                return true;
-            }
+            if (checkName.includes(badWord.toLowerCase())) return true;
         }
         if (checkName.length >= 3) {
-            let sameCharCount = 1;
-            let maxSame = 1;
+            let sameCharCount = 1, maxSame = 1;
             for (let i = 1; i < checkName.length; i++) {
                 if (checkName[i] === checkName[i-1]) {
                     sameCharCount++;
                     maxSame = Math.max(maxSame, sameCharCount);
-                } else {
-                    sameCharCount = 1;
-                }
+                } else sameCharCount = 1;
             }
             if (maxSame >= 4) return true;
         }
@@ -388,8 +387,6 @@
         const hasNumber = /[0-9]/.test(checkName);
         if (!hasThai && !hasEng && !hasNumber) return true;
         if (checkName.length < 1) return true;
-        const firstChar = checkName[0];
-        if (/[0-9!@#$%^&*()_+=\-[\]{};:'"\\|,.<>/?~`]/.test(firstChar)) return true;
         return false;
     }
     
@@ -406,7 +403,8 @@
     let currentLevel = 1;
     let playerName = "";
     let isGameReady = false;
-    let showFullRank = false;  // สถานะแสดงอันดับทั้งหมด
+    let showFullRank = false;
+    let allPlayers = [];
     
     const popImg = document.getElementById('pop-img');
     const scoreEl = document.getElementById('score');
@@ -417,6 +415,7 @@
     const tapHint = document.getElementById('tapHint');
     const warningText = document.getElementById('warningText');
     const rankContainer = document.getElementById('rank-list');
+    const onlineStatus = document.getElementById('onlineStatus');
     
     function calcLevel(score) {
         return Math.floor(score / 50) + 1;
@@ -425,6 +424,9 @@
     function updateUI() {
         scoreEl.innerText = currentScore.toLocaleString();
         lvEl.innerText = currentLevel;
+        if (playerName) {
+            currentUserDisplay.innerHTML = `<i class="fas fa-user-check"></i> กำลังเล่น: ${playerName} (${currentScore.toLocaleString()} คะแนน)`;
+        }
     }
     
     function setGameEnabled(enabled) {
@@ -442,94 +444,85 @@
         }
     }
     
-    function saveScoreToLocal() {
+    // บันทึกคะแนนลง Firebase
+    function syncScoreToFirebase() {
         if (!playerName) return;
-        
-        let allPlayers = [];
-        const stored = localStorage.getItem('uttayanPopRanking');
-        if (stored) {
-            try {
-                allPlayers = JSON.parse(stored);
-            } catch(e) {}
-        }
-        
-        const existingIndex = allPlayers.findIndex(p => p.name === playerName);
-        if (existingIndex !== -1) {
-            allPlayers[existingIndex].score = currentScore;
-            allPlayers[existingIndex].level = currentLevel;
-            allPlayers[existingIndex].timestamp = Date.now();
-        } else {
-            allPlayers.push({
-                name: playerName,
-                score: currentScore,
-                level: currentLevel,
-                timestamp: Date.now()
-            });
-        }
-        
-        allPlayers.sort((a,b) => b.score - a.score);
-        if (allPlayers.length > 30) allPlayers = allPlayers.slice(0,30);
-        localStorage.setItem('uttayanPopRanking', JSON.stringify(allPlayers));
-        
-        updateLeaderboard();
+        const playerRef = db.ref('players/' + encodeURIComponent(playerName));
+        playerRef.set({
+            name: playerName,
+            score: currentScore,
+            level: currentLevel,
+            timestamp: firebase.database.ServerValue.TIMESTAMP
+        }).catch(err => console.warn("sync error", err));
     }
     
-    function loadPlayerScore() {
+    // โหลดคะแนนจาก Firebase
+    function loadPlayerScoreFromFirebase() {
         if (!playerName) return;
-        
-        const stored = localStorage.getItem('uttayanPopRanking');
-        if (stored) {
-            try {
-                const allPlayers = JSON.parse(stored);
-                const me = allPlayers.find(p => p.name === playerName);
-                if (me && typeof me.score === 'number') {
-                    currentScore = me.score;
-                    currentLevel = calcLevel(currentScore);
-                    updateUI();
-                    showToast(`👋 ยินดีกลับมา ${playerName} (${currentScore.toLocaleString()} คะแนน)`, 1500);
-                    return;
+        const playerRef = db.ref('players/' + encodeURIComponent(playerName));
+        playerRef.once('value').then((snapshot) => {
+            const data = snapshot.val();
+            if (data && typeof data.score === 'number') {
+                currentScore = data.score;
+                currentLevel = calcLevel(currentScore);
+                updateUI();
+                showToast(`👋 ยินดีกลับมา ${playerName} (${currentScore.toLocaleString()} คะแนน)`, 1500);
+            } else {
+                currentScore = 0;
+                currentLevel = 1;
+                updateUI();
+                syncScoreToFirebase();
+                showToast(`✨ ยินดีต้อนรับ ${playerName} ✨ กดรูปได้เลย!`, 1500);
+            }
+            setGameEnabled(true);
+        }).catch(err => {
+            console.warn(err);
+            currentScore = 0;
+            updateUI();
+            setGameEnabled(true);
+        });
+    }
+    
+    // ฟังข้อมูลอันดับแบบเรียลไทม์
+    function listenLeaderboard() {
+        const playersRef = db.ref('players');
+        playersRef.on('value', (snapshot) => {
+            const players = [];
+            snapshot.forEach(childSnapshot => {
+                const p = childSnapshot.val();
+                if (p && typeof p.score === 'number' && p.name) {
+                    players.push({
+                        name: p.name,
+                        score: p.score,
+                        level: p.level || Math.floor(p.score/50)+1
+                    });
                 }
-            } catch(e) {}
-        }
-        
-        currentScore = 0;
-        currentLevel = 1;
-        updateUI();
-        saveScoreToLocal();
-        showToast(`✨ ยินดีต้อนรับ ${playerName} ✨ กดรูปได้เลย!`, 1500);
+            });
+            players.sort((a,b) => b.score - a.score);
+            allPlayers = players;
+            renderLeaderboard();
+        }, (error) => {
+            console.error("โหลดอันดับล้มเหลว:", error);
+            if (rankContainer) {
+                rankContainer.innerHTML = '<div style="padding:16px; text-align:center; color:#dc2626; font-size:12px;">เชื่อมต่อ Firebase ไม่สำเร็จ ตรวจสอบเน็ต</div>';
+            }
+        });
     }
     
-    function updateLeaderboard() {
-        const stored = localStorage.getItem('uttayanPopRanking');
+    function renderLeaderboard() {
         if (!rankContainer) return;
         
-        if (!stored) {
-            rankContainer.innerHTML = '<div style="padding:16px; text-align:center; color:#688f68; font-size:12px;"><i class="fas fa-users"></i> ยังไม่มีผู้เล่น</div>';
+        if (allPlayers.length === 0) {
+            rankContainer.innerHTML = '<div style="padding:16px; text-align:center; color:#688f68; font-size:12px;"><i class="fas fa-users"></i> ยังไม่มีผู้เล่น กรอกชื่อและกดรูปเป็นคนแรก!</div>';
             return;
         }
         
-        let players = [];
-        try {
-            players = JSON.parse(stored);
-        } catch(e) {
-            rankContainer.innerHTML = '<div style="padding:16px; text-align:center; color:#dc2626; font-size:12px;">โหลดอันดับผิดพลาด</div>';
-            return;
-        }
-        
-        if (players.length === 0) {
-            rankContainer.innerHTML = '<div style="padding:16px; text-align:center; color:#688f68; font-size:12px;">ยังไม่มีผู้เล่น</div>';
-            return;
-        }
-        
-        players.sort((a,b) => b.score - a.score);
-        
-        // แสดงเฉพาะ 5 อันดับแรก หรือทั้งหมด ขึ้นอยู่กับสถานะ
-        const displayLimit = showFullRank ? players.length : Math.min(5, players.length);
-        const hasMore = players.length > 5;
+        const displayLimit = showFullRank ? allPlayers.length : Math.min(5, allPlayers.length);
+        const hasMore = allPlayers.length > 5;
         
         let html = '';
         for (let i = 0; i < displayLimit; i++) {
-            const p = players[i];
+            const p = allPlayers[i];
             const idx = i;
             let medal = '';
             if (idx === 0) medal = '<i class="fas fa-crown" style="color:#f59e0b;"></i> ';
@@ -545,19 +538,18 @@
                     <span class="name">
                         ${medal} 
                         <span>${displayName}${isCurrentUser ? ' <span style="color:#1a5d1a; font-size:9px;">(คุณ)</span>' : ''}</span>
-                        <span style="font-size:9px; background:#e4f0e4; padding:2px 6px; border-radius:30px;">Lv.${p.level || Math.floor(p.score/50)+1}</span>
+                        <span style="font-size:9px; background:#e4f0e4; padding:2px 6px; border-radius:30px;">Lv.${p.level}</span>
                     </span>
                     <span class="pts">${p.score.toLocaleString()} <i class="fas fa-bolt" style="font-size:9px;"></i></span>
                 </div>
             `;
         }
         
-        // เพิ่มปุ่มดูเพิ่มเติม/แสดงน้อยลง
         if (hasMore) {
             if (!showFullRank) {
                 html += `
                     <button class="show-more-btn" id="showMoreBtn">
-                        <i class="fas fa-chevron-down"></i> ดูเพิ่มเติม (${players.length - 5} อันดับ) <i class="fas fa-chevron-down"></i>
+                        <i class="fas fa-chevron-down"></i> ดูเพิ่มเติม (${allPlayers.length - 5} อันดับ) <i class="fas fa-chevron-down"></i>
                     </button>
                 `;
             } else {
@@ -571,21 +563,19 @@
         
         rankContainer.innerHTML = html;
         
-        // ผูก event ให้ปุ่มใหม่
         const showMoreBtn = document.getElementById('showMoreBtn');
         const hideMoreBtn = document.getElementById('hideMoreBtn');
         
         if (showMoreBtn) {
             showMoreBtn.addEventListener('click', () => {
                 showFullRank = true;
-                updateLeaderboard();
+                renderLeaderboard();
             });
         }
-        
         if (hideMoreBtn) {
             hideMoreBtn.addEventListener('click', () => {
                 showFullRank = false;
-                updateLeaderboard();
+                renderLeaderboard();
             });
         }
     }
@@ -599,7 +589,7 @@
         currentScore += 1;
         currentLevel = calcLevel(currentScore);
         updateUI();
-        saveScoreToLocal();
+        syncScoreToFirebase();
         
         popImg.classList.add('pop-active');
         setTimeout(() => popImg.classList.remove('pop-active'), 100);
@@ -652,21 +642,20 @@
         if (playerName !== "" && playerName !== cleanName) {
             playerName = cleanName;
             playerNameInput.value = playerName;
-            loadPlayerScore();
+            currentScore = 0;
+            currentLevel = 1;
+            updateUI();
+            loadPlayerScoreFromFirebase();
             updateCurrentUserDisplay();
-            setGameEnabled(true);
             showToast(`✅ เปลี่ยนชื่อเป็น ${playerName}`, 1500);
-            updateLeaderboard();
             saveNameBtn.innerHTML = '✏️ เปลี่ยนชื่อ';
         } 
         else if (playerName === "") {
             playerName = cleanName;
             playerNameInput.value = playerName;
-            loadPlayerScore();
+            loadPlayerScoreFromFirebase();
             updateCurrentUserDisplay();
-            setGameEnabled(true);
             showToast(`✅ เริ่มเล่น! สวัสดี ${playerName}`, 1500);
-            updateLeaderboard();
             saveNameBtn.innerHTML = '✏️ เปลี่ยนชื่อ';
         }
         else if (playerName === cleanName) {
@@ -676,7 +665,6 @@
     
     function updateCurrentUserDisplay() {
         if (playerName) {
-            currentUserDisplay.innerHTML = `<i class="fas fa-user-check"></i> กำลังเล่น: ${playerName} (${currentScore.toLocaleString()} คะแนน)`;
             currentUserDisplay.style.display = "inline-block";
         } else {
             currentUserDisplay.style.display = "none";
@@ -689,6 +677,20 @@
         toast.innerText = msg;
         document.body.appendChild(toast);
         setTimeout(() => toast.remove(), duration);
+    }
+    
+    // ตรวจสอบสถานะการเชื่อมต่อ Firebase
+    function checkConnection() {
+        const connectedRef = firebase.database().ref(".info/connected");
+        connectedRef.on("value", (snap) => {
+            if (snap.val() === true) {
+                onlineStatus.innerHTML = '<i class="fas fa-circle" style="color:#16a34a; font-size:6px;"></i> เชื่อมต่อออนไลน์ • แสดงอันดับเรียลไทม์';
+                onlineStatus.style.color = "#16a34a";
+            } else {
+                onlineStatus.innerHTML = '<i class="fas fa-circle" style="color:#dc2626; font-size:6px;"></i> กำลังเชื่อมต่อ...';
+                onlineStatus.style.color = "#dc2626";
+            }
+        });
     }
     
     function bindEvents() {
@@ -711,15 +713,13 @@
         });
     }
     
-    function loadInitialLeaderboard() {
-        updateLeaderboard();
-    }
-    
     window.onload = () => {
         bindEvents();
-        loadInitialLeaderboard();
+        listenLeaderboard();  // เริ่มฟังอันดับทันที
+        checkConnection();
         setGameEnabled(false);
         playerNameInput.focus();
+        showToast("📊 สามารถดูอันดับผู้เล่นอื่นได้เลย โดยไม่ต้องกรอกชื่อ", 2500);
     };
 </script>
 </body>
