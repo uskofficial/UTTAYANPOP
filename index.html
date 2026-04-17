@@ -14,7 +14,6 @@
             padding: 0;
             box-sizing: border-box;
             -webkit-tap-highlight-color: transparent;
-            user-select: none;
         }
         body {
             background: linear-gradient(145deg, #eef2f5 0%, #d9e2e8 100%);
@@ -50,10 +49,6 @@
             max-width: 380px;
             height: auto;
             filter: drop-shadow(0 8px 15px rgba(0, 0, 0, 0.12));
-            transition: transform 0.3s ease;
-        }
-        .title-image:hover {
-            transform: scale(1.02);
         }
         .badge {
             background: #f0fdf4;
@@ -134,10 +129,6 @@
         .name-input-section input:focus {
             border-color: #1a5d1a;
             box-shadow: 0 0 0 3px rgba(26, 93, 26, 0.1);
-        }
-        .name-input-section input.error {
-            border-color: #dc2626;
-            background: #fef2f2;
         }
         .save-name-btn {
             background: #1a5d1a;
@@ -224,12 +215,10 @@
             white-space: nowrap;
         }
         
-        /* ถ้วยรางวัล */
         .trophy-gold { color: #fbbf24; font-size: 16px; }
         .trophy-silver { color: #9ca3af; font-size: 16px; }
         .trophy-bronze { color: #cd7f32; font-size: 16px; }
         
-        /* พุ่งแสดงความยินดี */
         .congrats-pop {
             position: fixed;
             bottom: 20%;
@@ -258,7 +247,7 @@
             100% { opacity: 0; transform: translateX(-50%) translateY(-40px) scale(0.8); bottom: 30%; display: none; }
         }
         
-        .show-more-btn, .hide-more-btn {
+        .show-more-btn {
             background: none;
             border: none;
             color: #1a5d1a;
@@ -275,7 +264,7 @@
             margin-top: 4px;
             transition: 0.1s;
         }
-        .show-more-btn:active, .hide-more-btn:active {
+        .show-more-btn:active {
             background: #e8f5e9;
             border-radius: 0 0 24px 24px;
         }
@@ -328,8 +317,6 @@
         @media (max-width: 460px) {
             #pop-img { width: 150px; }
             .main-card { padding: 20px 16px 24px; }
-            .fair-play-footer { font-size: 9px; padding: 8px 10px; }
-            .rank-item { padding: 8px 12px; font-size: 12px; }
             .rank-item .pts { font-size: 10px; white-space: normal; word-break: break-word; }
             .title-image { max-width: 300px; }
             .congrats-pop { font-size: 14px; padding: 6px 16px; white-space: nowrap; }
@@ -342,11 +329,9 @@
 <div class="main-card">
     <header>
         <img src="https://uskofficial.github.io/UTTAYANHeartNewSeedCamp/assets/img/logo.png" class="logo" alt="logo" onerror="this.src='https://i.postimg.cc/WztgWSpc/IMG-7790.png'">
-        
         <div class="title-container">
             <img src="https://i.postimg.cc/FHrQjZMT/IMG-8866.png" class="title-image" alt="UTTAYAN POP USK">
         </div>
-
         <div class="badge">
             <i class="fas fa-tree"></i> UTTAYAN POP <i class="fas fa-star"></i>
         </div>
@@ -414,7 +399,7 @@
     const db = firebase.database();
     
     // ==================== ระบบจัดการคำไม่เหมาะสม ====================
-    const inappropriateWords = ["เหี้ย", "สัส", "ควย", "fuck", "shit", "ยาบ้า", "ส้นตีน", "กระจอก", "สัด", "ไอ้", "มึง", "กู"];
+    const inappropriateWords = ["เหี้ย", "สัส", "ควย", "fuck", "shit", "ยาบ้า", "ส้นตีน", "กระจอก", "สัด", "ไอ้", "มึง", "กู", "เหรีย", "สลบ", "ชาติช้าง"];
     
     function isInappropriateName(name) {
         if (!name || name.trim() === "") return true;
@@ -437,9 +422,9 @@
     let isGameReady = false;
     let showFullRank = false;
     let allPlayers = [];
-    
-    // เก็บเวลาที่แสดง "พุ่ง" ของผู้เล่นอันดับ1
     let congratsShownTime = {}; 
+    let pendingUpdate = false;
+    let lastUpdateTime = 0;
     
     const popImg = document.getElementById('pop-img');
     const scoreEl = document.getElementById('score');
@@ -455,11 +440,10 @@
     function calcLevel(score) { return Math.floor(score / 50) + 1; }
     
     function updateUI() {
-        // แสดงตัวเลขเต็ม ไม่มีเลขยกกำลัง หรือ M/K
         scoreEl.innerText = currentScore.toLocaleString('en-US');
         lvEl.innerText = currentLevel;
         if (playerName) {
-            currentUserDisplay.innerHTML = `<i class="fas fa-user-check"></i> กำลังเล่น: ${playerName}`;
+            currentUserDisplay.innerHTML = `<i class="fas fa-user-check"></i> กำลังเล่น: ${playerName} (${currentScore.toLocaleString()} คะแนน)`;
             currentUserDisplay.style.display = "inline-block";
         }
     }
@@ -477,21 +461,31 @@
         }
     }
     
+    // อัปเดตคะแนนไป Firebase
     function syncScoreToFirebase() {
         if (!playerName) return;
-        db.ref('players/' + encodeURIComponent(playerName)).set({
+        
+        const playerRef = db.ref('players/' + encodeURIComponent(playerName));
+        const newScore = currentScore;
+        const newLevel = currentLevel;
+        
+        playerRef.update({
             name: playerName,
-            score: currentScore,
-            level: currentLevel,
+            score: newScore,
+            level: newLevel,
             timestamp: firebase.database.ServerValue.TIMESTAMP
+        }).catch(err => {
+            console.error("อัปเดต Firebase ล้มเหลว:", err);
         });
     }
     
     function loadPlayerScoreFromFirebase() {
         if (!playerName) return;
-        db.ref('players/' + encodeURIComponent(playerName)).once('value').then((snapshot) => {
+        const playerRef = db.ref('players/' + encodeURIComponent(playerName));
+        
+        playerRef.once('value').then((snapshot) => {
             const data = snapshot.val();
-            if (data && typeof data.score === 'number') {
+            if (data && typeof data.score === 'number' && data.score !== undefined) {
                 currentScore = data.score;
                 currentLevel = calcLevel(currentScore);
             } else {
@@ -501,9 +495,12 @@
             }
             updateUI();
             setGameEnabled(true);
-            showToast(`สวัสดี ${playerName}!`, 1500);
+            showToast(`สวัสดี ${playerName}! กดได้เลย`, 1500);
         }).catch(err => {
-            console.error(err);
+            console.error("โหลดข้อมูลผิดพลาด:", err);
+            currentScore = 0;
+            currentLevel = 1;
+            updateUI();
             setGameEnabled(true);
         });
     }
@@ -512,7 +509,6 @@
         if (!rankOneName) return;
         const now = Date.now();
         const lastShown = congratsShownTime[rankOneName] || 0;
-        // ถ้าเคยแสดงแล้วและยังไม่ครบ 3 นาที (180000 ms) -> ไม่แสดงอีก
         if (lastShown && (now - lastShown) < 180000) {
             return;
         }
@@ -520,11 +516,11 @@
         
         const popDiv = document.createElement('div');
         popDiv.className = 'congrats-pop';
-        popDiv.innerHTML = `<i class="fas fa-crown" style="color:#f59e0b;"></i> พุ่ง! ${rankOneName} ครองอันดับ 1 <i class="fas fa-rocket"></i>`;
+        popDiv.innerHTML = `<i class="fas fa-crown" style="color:#f59e0b;"></i> 🎉 พุ่ง! ${rankOneName} ครองอันดับ 1 🚀`;
         document.body.appendChild(popDiv);
         setTimeout(() => {
             if(popDiv && popDiv.remove) popDiv.remove();
-        }, 1000);
+        }, 1200);
     }
     
     function listenLeaderboard() {
@@ -532,7 +528,9 @@
             const players = [];
             snapshot.forEach(child => {
                 const p = child.val();
-                if (p && p.name) players.push(p);
+                if (p && p.name && typeof p.score === 'number') {
+                    players.push(p);
+                }
             });
             players.sort((a,b) => b.score - a.score);
             allPlayers = players;
@@ -549,7 +547,7 @@
     
     function renderLeaderboard() {
         if (allPlayers.length === 0) {
-            rankContainer.innerHTML = '<div style="padding:16px; font-size:12px;">รอผู้เล่นคนแรก...</div>';
+            rankContainer.innerHTML = '<div style="padding:16px; text-align:center; color:#688f68; font-size:12px;">🎮 รอผู้เล่นคนแรก...</div>';
             return;
         }
         let html = '';
@@ -562,7 +560,6 @@
             else if (i === 1) trophyHtml = '<i class="fas fa-medal trophy-silver"></i>';
             else if (i === 2) trophyHtml = '<i class="fas fa-medal trophy-bronze"></i>';
             
-            // แสดงคะแนนเต็มรูปแบบ ไม่ย่อ
             const displayScore = p.score.toLocaleString('en-US');
             
             html += `
@@ -577,27 +574,50 @@
             `;
         }
         if (allPlayers.length > 5) {
-            html += `<button class="show-more-btn" onclick="window.toggleRank()">${showFullRank ? 'ย่อหน้าต่าง' : 'ดูทั้งหมด'}</button>`;
+            html += `<button class="show-more-btn" onclick="window.toggleRank()">${showFullRank ? '▲ ย่อหน้าต่าง' : '▼ ดูทั้งหมด ' + allPlayers.length + ' คน'}</button>`;
         }
         rankContainer.innerHTML = html;
     }
 
-    window.toggleRank = function() { showFullRank = !showFullRank; renderLeaderboard(); };
+    window.toggleRank = function() { 
+        showFullRank = !showFullRank; 
+        renderLeaderboard(); 
+    };
     
+    // ฟังก์ชันกดเพิ่มคะแนน - ทำงานทันที ไม่มีดีเลย์
     function addScore() {
-        if (!isGameReady) return showToast("กรอกชื่อก่อนนะ!", 1000, true);
+        if (!isGameReady) {
+            showToast("กรอกชื่อก่อนนะ!", 1000, true);
+            return;
+        }
+        
+        // เพิ่มคะแนนทันที
         currentScore++;
         currentLevel = calcLevel(currentScore);
         updateUI();
+        
+        // อัปเดต Firebase (แบบไม่ต้องรอ)
         syncScoreToFirebase();
+        
+        // เอฟเฟกต์กด
         popImg.classList.add('pop-active');
         setTimeout(() => popImg.classList.remove('pop-active'), 80);
+        
+        // สั่นถ้ารองรับ
         if (navigator.vibrate) navigator.vibrate(10);
     }
     
     function savePlayerName() {
         let name = playerNameInput.value.trim();
-        if (isInappropriateName(name)) return showToast("ชื่อไม่สุภาพ หรือมีคำหยาบ!", 2000, true);
+        if (isInappropriateName(name)) {
+            showToast("❌ ชื่อไม่สุภาพ กรุณาใช้ชื่อที่เหมาะสม!", 2000, true);
+            return;
+        }
+        if (name === "") {
+            showToast("❌ กรุณากรอกชื่อด้วยค่ะ/ครับ!", 1500, true);
+            return;
+        }
+        
         playerName = sanitizeName(name);
         setGameEnabled(false);
         loadPlayerScoreFromFirebase();
@@ -613,14 +633,45 @@
         setTimeout(() => t.remove(), dur);
     }
     
-    window.onload = () => {
-        popImg.addEventListener('click', (e) => { e.preventDefault(); addScore(); });
-        popImg.addEventListener('touchstart', (e) => { e.preventDefault(); addScore(); }, {passive: false});
-        saveNameBtn.onclick = savePlayerName;
-        listenLeaderboard();
-        db.ref(".info/connected").on("value", (snap) => {
-            onlineStatus.style.color = snap.val() ? "#16a34a" : "#dc2626";
+    // ตรวจสอบ connection
+    function checkConnection() {
+        const connectedRef = db.ref(".info/connected");
+        connectedRef.on("value", (snap) => {
+            if (snap.val() === true) {
+                onlineStatus.innerHTML = '<i class="fas fa-circle" style="color:#16a34a; font-size:6px;"></i> เชื่อมต่อออนไลน์ • อัปเดตเรียลไทม์';
+                onlineStatus.style.color = "#16a34a";
+            } else {
+                onlineStatus.innerHTML = '<i class="fas fa-circle" style="color:#dc2626; font-size:6px;"></i> ออฟไลน์ • ข้อมูลจะอัปเดตเมื่อเชื่อมต่อ';
+                onlineStatus.style.color = "#dc2626";
+            }
         });
+    }
+    
+    window.onload = () => {
+        // Event listeners
+        popImg.addEventListener('click', (e) => { 
+            e.preventDefault(); 
+            addScore(); 
+        });
+        popImg.addEventListener('touchstart', (e) => { 
+            e.preventDefault(); 
+            addScore(); 
+        }, {passive: false});
+        
+        saveNameBtn.onclick = savePlayerName;
+        
+        // กด Enter ในช่องชื่อได้
+        playerNameInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                savePlayerName();
+            }
+        });
+        
+        listenLeaderboard();
+        checkConnection();
+        
+        console.log("🎮 อุทยานป็อบ พร้อมใช้งานแล้ว! ไม่มีข้อจำกัดคะแนน");
+        console.log("💡 วิธีเล่น: กรอกชื่อที่สุภาพ → กดที่รูปโลโก้ → คะแนนเพิ่มเรื่อยๆ ไม่มีวันหยุด!");
     };
 </script>
 </body>
