@@ -3,13 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>อุทยานป็อบ · UTTAYAN POP</title>
-    
+    <title>อุทยานป็อบ · UTTAYAN POP พร้อมเสียงป๊อป</title>
+    <!-- Font Awesome 6 -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- Google Fonts: Kanit -->
     <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
-
     <style>
         * {
             margin: 0;
@@ -23,8 +24,10 @@
             --primary-light: #2e7d2e;
             --secondary: #f0fdf4;
             --accent: #fbbf24;
+            --accent-glow: #ffd966;
             --text: #1e293b;
             --text-light: #475569;
+            --bg-glow: #e6f7e6;
             --card-shadow: 0 20px 35px -12px rgba(0, 0, 0, 0.15);
         }
 
@@ -42,30 +45,38 @@
 
         .main-card {
             background: rgba(255, 255, 255, 0.97);
+            backdrop-filter: blur(0px);
             width: 100%;
             max-width: 460px;
             border-radius: 48px;
-            box-shadow: var(--card-shadow);
+            box-shadow: var(--card-shadow), 0 4px 8px rgba(0,0,0,0.02);
             padding: 28px 24px 36px;
             text-align: center;
-            border: 1px solid rgba(255,255,255,0.6);
+            transition: all 0.2s ease;
+            border: 1px solid rgba(255,255,240,0.6);
         }
 
         .logo {
             width: 72px;
+            height: auto;
             margin-bottom: 8px;
             filter: drop-shadow(0 6px 10px rgba(0,0,0,0.1));
+            transition: transform 0.2s;
         }
-
+        .logo:hover {
+            transform: scale(1.02);
+        }
         header h1 {
             margin: 0;
+            color: var(--primary);
             font-size: 32px;
             font-weight: 700;
+            letter-spacing: -0.3px;
             background: linear-gradient(135deg, #1a5d1a, #3b8b3b);
+            background-clip: text;
             -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+            color: transparent;
         }
-
         .badge {
             display: inline-flex;
             align-items: center;
@@ -78,6 +89,10 @@
             font-weight: 600;
             margin-top: 8px;
             border: 1px solid #c4e6c4;
+            box-shadow: inset 0 1px 0 white, 0 2px 4px rgba(0,0,0,0.02);
+        }
+        .badge i {
+            font-size: 12px;
         }
 
         .stats-grid {
@@ -86,36 +101,60 @@
             gap: 18px;
             margin: 28px 0 20px;
         }
-
         .stat-card {
             background: var(--secondary);
             padding: 16px 8px;
             border-radius: 32px;
             border: 1px solid #dcfce7;
+            transition: all 0.2s;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.02);
         }
-
+        .stat-card small {
+            color: var(--text-light);
+            font-size: 13px;
+            font-weight: 400;
+            letter-spacing: 0.3px;
+        }
         .stat-card div {
             font-size: 32px;
             font-weight: 800;
             color: var(--primary);
+            line-height: 1.2;
+            margin-top: 6px;
+            font-family: 'Kanit', monospace;
         }
 
         .game-box {
-            margin: 10px 0;
+            margin: 10px 0 5px;
             display: flex;
             justify-content: center;
+            align-items: center;
         }
-
         #pop-img {
             width: 220px;
             cursor: pointer;
             transition: transform 0.08s cubic-bezier(0.2, 1.6, 0.5, 1);
             filter: drop-shadow(0 14px 18px rgba(0, 0, 0, 0.2));
             user-select: none;
+            -webkit-user-drag: none;
         }
-
         .pop-active {
             transform: scale(0.88) rotate(3deg) !important;
+            transition: transform 0.05s ease-out !important;
+        }
+        .tap-hint {
+            background: #f9f3e0;
+            display: inline-block;
+            margin-top: 16px;
+            padding: 6px 16px;
+            border-radius: 40px;
+            font-size: 12px;
+            color: #b45309;
+            font-weight: 500;
+            backdrop-filter: blur(4px);
+        }
+        .tap-hint i {
+            margin-right: 6px;
         }
 
         .leaderboard-section {
@@ -125,31 +164,52 @@
             border-radius: 32px;
             padding: 4px 0 12px 0;
         }
-
         .leaderboard-section h3 {
             font-size: 20px;
+            font-weight: 600;
             border-left: 5px solid var(--primary);
             padding-left: 16px;
             margin-bottom: 16px;
             display: flex;
             align-items: center;
             gap: 10px;
+            color: #0f2b0f;
         }
-
+        .leaderboard-section h3 i {
+            color: var(--accent);
+            text-shadow: 0 1px 2px rgba(0,0,0,0.1);
+        }
         .rank-list {
             background: #ffffffdd;
+            backdrop-filter: blur(2px);
             border-radius: 28px;
             overflow: hidden;
             box-shadow: 0 5px 12px rgba(0,0,0,0.05);
         }
-
         .rank-item {
             display: flex;
             justify-content: space-between;
+            align-items: center;
             padding: 14px 20px;
             border-bottom: 1px solid #e9f0e9;
+            transition: 0.15s;
+            font-size: 15px;
         }
-
+        .rank-item:last-child {
+            border-bottom: none;
+        }
+        .rank-item:hover {
+            background: #f1faf1;
+        }
+        .rank-item .name {
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .medal-icon {
+            font-size: 1.2rem;
+        }
         .rank-item .pts {
             font-weight: 700;
             color: var(--primary);
@@ -158,23 +218,67 @@
             border-radius: 40px;
             font-size: 14px;
         }
-
+        .loading {
+            padding: 24px;
+            text-align: center;
+            color: #6c8b6c;
+            font-weight: 400;
+        }
+        .footer-note {
+            font-size: 10px;
+            text-align: center;
+            margin-top: 24px;
+            color: #688f68;
+            border-top: 1px dashed #cbe5cb;
+            padding-top: 14px;
+        }
+        button {
+            background: none;
+            border: none;
+        }
         @media (max-width: 460px) {
-            #pop-img { width: 180px; }
+            .main-card {
+                padding: 22px 18px 30px;
+            }
+            #pop-img {
+                width: 180px;
+            }
+            .stat-card div {
+                font-size: 28px;
+            }
+        }
+        /* toast แจ้งเตือนเสียง */
+        .sound-toast {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #2c5e2c;
+            color: #fef9c3;
+            padding: 8px 20px;
+            border-radius: 40px;
+            font-size: 13px;
+            font-weight: 500;
+            z-index: 1000;
+            backdrop-filter: blur(8px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+            pointer-events: none;
+            font-family: 'Kanit', monospace;
+            white-space: nowrap;
         }
     </style>
 </head>
 <body>
 
-<audio id="pop-sound-1" src="https://www.soundjay.com/buttons/sounds/button-16.mp3" preload="auto"></audio>
-<audio id="pop-sound-2" src="https://www.soundjay.com/buttons/sounds/button-17.mp3" preload="auto"></audio>
-<audio id="pop-sound-3" src="https://www.soundjay.com/buttons/sounds/button-19.mp3" preload="auto"></audio>
-
 <div class="main-card">
     <header>
-        <img src="https://uskofficial.github.io/UTTAYANHeartNewSeedCamp/assets/img/logo.png" class="logo" alt="Logo" onerror="this.src='https://i.postimg.cc/WztgWSpc/IMG-7790.png'">
+        <img src="https://uskofficial.github.io/UTTAYANHeartNewSeedCamp/assets/img/logo.png" 
+             class="logo" alt="Logo อุทยานป็อบ" 
+             onerror="this.src='https://i.postimg.cc/WztgWSpc/IMG-7790.png'">
         <h1>อุทยานป็อบ</h1>
-        <div class="badge"><i class="fas fa-tree"></i> UTTAYAN POP <i class="fas fa-crown"></i></div>
+        <div class="badge">
+            <i class="fas fa-tree"></i> UTTAYAN POP <i class="fas fa-volume-up" id="soundIndicator" style="margin-left:6px;"></i>
+        </div>
     </header>
 
     <div class="stats-grid">
@@ -189,19 +293,30 @@
     </div>
 
     <div class="game-box">
-        <img src="https://i.postimg.cc/WztgWSpc/IMG-7790.png" id="pop-img" draggable="false">
+        <img src="https://i.postimg.cc/WztgWSpc/IMG-7790.png" 
+             id="pop-img" 
+             draggable="false" 
+             alt="ป๊อป! อุทยานป็อบ"
+             crossorigin="anonymous">
+    </div>
+    <div class="tap-hint">
+        <i class="fas fa-hand-peace"></i> กดที่รูปเพื่อเพิ่มคะแนน! 
+        <i class="fas fa-fire"></i> <span style="background:#ffe0b5; border-radius:30px; padding:2px 8px;">✨ มีเสียงป๊อป ✨</span>
     </div>
 
     <div class="leaderboard-section">
         <h3><i class="fas fa-trophy" style="color:#fbbf24;"></i> อันดับนักกดสูงสุด</h3>
         <div id="rank-list" class="rank-list">
-            <div class="loading">กำลังโหลดอันดับ...</div>
+            <div class="loading"><i class="fas fa-spinner fa-pulse"></i> กำลังโหลดอันดับ...</div>
         </div>
+    </div>
+    <div class="footer-note">
+        <i class="fas fa-database"></i> อัปเดตเรียลไทม์ • กดเยอะ เลเวลพุ่ง! • 🔊 เสียงในตัว
     </div>
 </div>
 
 <script>
-    // 1. Firebase Config
+    // ---------- FIREBASE CONFIG ----------
     const firebaseConfig = {
         apiKey: "AIzaSyDXVXeobHQE_MrUcfyvK-G16gtGa8bdEHc",
         authDomain: "uttayanpop.firebaseapp.com",
@@ -213,73 +328,321 @@
         measurementId: "G-67504CKL26"
     };
 
-    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+    if (!firebase.apps.length) {
+        firebase.initializeApp(firebaseConfig);
+    }
     const db = firebase.database();
 
-    // 2. ตัวแปรในเกม
-    let currentScore = 0;
-    let playerName = "";
-    const popImg = document.getElementById('pop-img');
+    // ---------- ระบบเสียง Web Audio (Pop Sound สนุก) ----------
+    let audioCtx = null;
+    let soundEnabled = true;
+    let soundInitiated = false;
 
-    // 3. ฟังก์ชันเสียง
-    function playPopSound() {
-        const soundNum = Math.floor(Math.random() * 3) + 1;
-        const sound = document.getElementById(`pop-sound-${soundNum}`);
-        if (sound) { sound.currentTime = 0; sound.play().catch(()=>{}); }
-    }
-
-    // 4. ฟังก์ชันหลักเมื่อกด
-    function doPop(e) {
-        if (e) e.preventDefault();
-        playPopSound();
-        currentScore++;
-        
-        const lv = Math.floor(currentScore / 50) + 1;
-        document.getElementById('score').innerText = currentScore.toLocaleString();
-        document.getElementById('lv').innerText = lv;
-
-        popImg.classList.add('pop-active');
-        setTimeout(() => popImg.classList.remove('pop-active'), 100);
-
-        if (playerName) {
-            db.ref('players/' + encodeURIComponent(playerName)).set({
-                name: playerName,
-                score: currentScore,
-                level: lv
-            });
+    function initAudio() {
+        if (audioCtx) return;
+        try {
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            // สร้างเสียงป๊อปแบบสั้น sharp tone
+        } catch (e) {
+            console.warn("Web Audio API not supported", e);
+            soundEnabled = false;
         }
-        if (navigator.vibrate) navigator.vibrate(15);
     }
 
-    // 5. ระบบชื่อและอันดับ
-    window.onload = () => {
-        playerName = prompt("กรุณาใส่ชื่อของคุณ:") || "นักกด_" + Math.floor(Math.random()*100);
+    function playPopSound() {
+        if (!soundEnabled) return;
+        if (!audioCtx) {
+            initAudio();
+            if (!audioCtx) return;
+        }
+        // resume context ถ้ามัน suspended (เบราว์เซอร์นโยบาย)
+        if (audioCtx.state === 'suspended') {
+            audioCtx.resume().then(() => {
+                generatePopTone();
+            }).catch(e=>console.log("audio resume fail", e));
+        } else {
+            generatePopTone();
+        }
+    }
+    
+    function generatePopTone() {
+        if (!audioCtx || audioCtx.state !== 'running') return;
+        const now = audioCtx.currentTime;
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
         
-        // โหลดคะแนนเดิม
-        db.ref('players/' + encodeURIComponent(playerName)).once('value').then(snap => {
-            if (snap.exists()) {
-                currentScore = snap.val().score;
-                document.getElementById('score').innerText = currentScore.toLocaleString();
-                document.getElementById('lv').innerText = snap.val().level;
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        
+        // เสียง pop มีลักษณะ "ป็อบ" สั้นๆ ความถี่ลดลงเล็กน้อย
+        osc.type = 'sine';
+        osc.frequency.value = 880; // เสียงสูงเริ่ม
+        osc.frequency.exponentialRampToValue(440, 0.12);
+        
+        gain.gain.value = 0.25;
+        gain.gain.exponentialRampToValue(0.0001, 0.2);
+        
+        osc.start();
+        osc.stop(now + 0.2);
+        
+        // เพิ่ม noise สั้นๆ ให้ฟังคล้าย pop
+        const bufferSize = 4096;
+        const noiseNode = audioCtx.createScriptProcessor(bufferSize, 1, 1);
+        noiseNode.onaudioprocess = function(e) {
+            const output = e.outputBuffer.getChannelData(0);
+            for (let i = 0; i < bufferSize; i++) {
+                output[i] = (Math.random() * 2 - 1) * 0.08;
             }
+            noiseNode.disconnect();
+        };
+        const noiseGain = audioCtx.createGain();
+        noiseGain.gain.value = 0.2;
+        noiseGain.gain.exponentialRampToValue(0.0001, 0.1);
+        noiseNode.connect(noiseGain);
+        noiseGain.connect(audioCtx.destination);
+        noiseNode.start && noiseNode.start(now);
+        setTimeout(() => {
+            try { noiseNode.disconnect(); } catch(e) {}
+        }, 100);
+    }
+    
+    // ฟังก์ชัน unlock เสียงบนมือถือ (แตะครั้งแรก)
+    function unlockAudioOnFirstTouch() {
+        if (soundInitiated) return;
+        initAudio();
+        if (audioCtx && audioCtx.state === 'suspended') {
+            audioCtx.resume().then(() => {
+                soundInitiated = true;
+                showSoundToast("🔊 เปิดเสียงป๊อปแล้ว สนุกได้เต็มที่!");
+                // เปลี่ยนไอคอน
+                const soundIcon = document.getElementById('soundIndicator');
+                if(soundIcon) soundIcon.innerHTML = '<i class="fas fa-volume-up"></i>';
+            }).catch(e=>console.log);
+        } else if (audioCtx && audioCtx.state === 'running') {
+            soundInitiated = true;
+        } else {
+            // ถ้าไม่มี audio context ให้ลองอีกครั้ง
+            initAudio();
+            if(audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+        }
+    }
+    
+    function showSoundToast(msg) {
+        let toast = document.createElement('div');
+        toast.className = 'sound-toast';
+        toast.innerText = msg;
+        document.body.appendChild(toast);
+        setTimeout(() => toast.remove(), 1800);
+    }
+    
+    // เรียกตอนกดรูปเพื่อเล่นเสียง + unlock โดยอัตโนมัติ (ครั้งแรกที่กด)
+    function handleSoundOnClick() {
+        if (!soundInitiated) {
+            unlockAudioOnFirstTouch();
+        }
+        playPopSound();
+    }
+    
+    // ------------------- ตัวแปรหลัก -------------------
+    let currentScore = 0;
+    let currentLevel = 1;
+    let playerName = "";
+    
+    const imgBase = "https://i.postimg.cc/WztgWSpc/IMG-7790.png";
+    const popImgElement = document.getElementById('pop-img');
+    
+    function updateUI() {
+        document.getElementById('score').innerText = currentScore.toLocaleString();
+        document.getElementById('lv').innerText = currentLevel;
+    }
+    
+    function calcLevel(scoreVal) {
+        return Math.floor(scoreVal / 50) + 1;
+    }
+    
+    function syncToFirebase() {
+        if (!playerName) return;
+        const playerRef = db.ref('players/' + encodeURIComponent(playerName));
+        playerRef.set({
+            name: playerName,
+            score: currentScore,
+            level: currentLevel,
+            timestamp: firebase.database.ServerValue.TIMESTAMP
+        }).catch(err => console.warn("sync error", err));
+    }
+    
+    function triggerPopAnimation() {
+        if (!popImgElement) return;
+        popImgElement.classList.add('pop-active');
+        setTimeout(() => {
+            popImgElement.classList.remove('pop-active');
+        }, 100);
+        popImgElement.style.transform = "scale(0.92)";
+        setTimeout(() => {
+            if (!popImgElement.classList.contains('pop-active')) {
+                popImgElement.style.transform = "";
+            }
+        }, 80);
+    }
+    
+    // ฟังก์ชันหลักเมื่อกด
+    function doPop(event) {
+        if (event) {
+            if (event.cancelable) event.preventDefault();
+        }
+        
+        // เล่นเสียงป๊อป ทุกครั้งที่กด (และ unlock หากยังไม่ได้)
+        handleSoundOnClick();
+        
+        // เพิ่มคะแนน
+        currentScore += 1;
+        const newLevel = calcLevel(currentScore);
+        currentLevel = newLevel;
+        
+        updateUI();
+        triggerPopAnimation();
+        syncToFirebase();
+        
+        if (navigator.vibrate) navigator.vibrate(10);
+    }
+    
+    function askPlayerName() {
+        let inputName = prompt("✨ กรุณาใส่ชื่อของคุณ เพื่อเริ่มบันทึกคะแนน (ชื่อจะแสดงในอันดับ) ✨", "นักท่องอุทยาน");
+        if (!inputName || inputName.trim() === "") {
+            inputName = "นักกดป๊อป_" + Math.floor(Math.random() * 1000);
+        }
+        let cleanName = inputName.trim().substring(0, 24);
+        if (cleanName === "") cleanName = "ป๊อปสตาร์";
+        playerName = cleanName;
+        
+        const playerRef = db.ref('players/' + encodeURIComponent(playerName));
+        playerRef.once('value').then((snapshot) => {
+            const data = snapshot.val();
+            if (data && typeof data.score === 'number') {
+                currentScore = data.score;
+                currentLevel = calcLevel(currentScore);
+                updateUI();
+                syncToFirebase();
+                showSoundToast(`👋 สวัสดีกลับมา ${playerName} คะแนนเดิม ${currentScore.toLocaleString()} คะแนน`);
+            } else {
+                currentScore = 0;
+                currentLevel = 1;
+                updateUI();
+                syncToFirebase();
+                showSoundToast(`✨ ยินดีต้อนรับ ${playerName} สู่อุทยานป็อบ ✨`);
+            }
+        }).catch(err => {
+            console.warn(err);
+            currentScore = 0;
+            currentLevel = 1;
+            updateUI();
+            syncToFirebase();
         });
-
-        // ดึงอันดับสด
-        db.ref('players').orderByChild('score').limitToLast(8).on('value', snap => {
-            let html = "";
-            let players = [];
-            snap.forEach(child => players.push(child.val()));
-            players.sort((a,b) => b.score - a.score).forEach((p, i) => {
-                html += `<div class="rank-item">
-                    <span>${i+1}. ${p.name}</span>
-                    <span class="pts">${p.score.toLocaleString()}</span>
-                </div>`;
+    }
+    
+    // จัดอันดับแบบ Real-time
+    function loadLeaderboard() {
+        const leaderboardRef = db.ref('players').orderByChild('score').limitToLast(10);
+        leaderboardRef.on('value', (snapshot) => {
+            const players = [];
+            snapshot.forEach(childSnapshot => {
+                const p = childSnapshot.val();
+                if (p && typeof p.score === 'number') {
+                    players.push({
+                        name: p.name || "ไม่ระบุชื่อ",
+                        score: p.score,
+                        level: p.level || Math.floor(p.score/50)+1
+                    });
+                }
             });
-            document.getElementById('rank-list').innerHTML = html || "ยังไม่มีข้อมูล";
+            players.sort((a,b) => b.score - a.score);
+            const rankContainer = document.getElementById('rank-list');
+            if (!rankContainer) return;
+            
+            if (players.length === 0) {
+                rankContainer.innerHTML = `<div class="loading"><i class="fas fa-users-slash"></i> ยังไม่มีผู้เล่น กดป๊อปเป็นคนแรก!</div>`;
+                return;
+            }
+            
+            let html = '';
+            players.forEach((p, idx) => {
+                const rank = idx + 1;
+                let medalHtml = '';
+                if (rank === 1) medalHtml = '<i class="fas fa-crown" style="color:#f59e0b;"></i> ';
+                else if (rank === 2) medalHtml = '<i class="fas fa-medal" style="color:#a0a0a0;"></i> ';
+                else if (rank === 3) medalHtml = '<i class="fas fa-medal" style="color:#cd7f32;"></i> ';
+                else medalHtml = `<span style="width:24px; display:inline-block; text-align:center; font-weight:600;">${rank}</span> `;
+                
+                let displayName = p.name.length > 18 ? p.name.slice(0,16)+".." : p.name;
+                html += `
+                    <div class="rank-item">
+                        <span class="name">
+                            ${medalHtml} 
+                            <span>${displayName}</span>
+                            <span style="font-size:10px; background:#e4f0e4; padding:2px 6px; border-radius:30px;">Lv.${p.level || Math.floor(p.score/50)+1}</span>
+                        </span>
+                        <span class="pts">${p.score.toLocaleString()} <i class="fas fa-bolt" style="font-size:10px;"></i></span>
+                    </div>
+                `;
+            });
+            rankContainer.innerHTML = html;
+        }, (error) => {
+            document.getElementById('rank-list').innerHTML = '<div class="loading"><i class="fas fa-exclamation-triangle"></i> โหลดอันดับไม่สำเร็จ</div>';
         });
-
-        popImg.addEventListener('mousedown', doPop);
-        popImg.addEventListener('touchstart', doPop);
+    }
+    
+    function bindEvents() {
+        if (!popImgElement) return;
+        const clickHandler = (e) => {
+            if(e) e.preventDefault();
+            doPop(e);
+        };
+        popImgElement.addEventListener('mousedown', clickHandler);
+        popImgElement.addEventListener('touchstart', clickHandler, { passive: false });
+        popImgElement.addEventListener('dragstart', (e) => e.preventDefault());
+        
+        // เพิ่ม event unlock เสียงเมื่อแตะ anywhere บน card เพื่อให้เว็บ audio context ทำงานบนมือถือ
+        document.body.addEventListener('touchstart', function onceTouch() {
+            if (!soundInitiated) {
+                unlockAudioOnFirstTouch();
+            }
+            document.body.removeEventListener('touchstart', onceTouch);
+        }, { once: true, passive: true });
+        
+        // แตะที่ badge หรือ รูปก็ได้ แต่รูปมี doPop อยู่แล้ว จึงช่วย unlock เสียงอัตโนมัติ
+    }
+    
+    window.addEventListener('contextmenu', (e) => {
+        if (e.target === popImgElement || popImgElement.contains(e.target)) {
+            e.preventDefault();
+        }
+    });
+    
+    // โหลดหน้าเริ่มต้น
+    window.onload = () => {
+        bindEvents();
+        askPlayerName();
+        loadLeaderboard();
+        
+        const connectedRef = firebase.database().ref(".info/connected");
+        connectedRef.on("value", (snap) => {
+            if (snap.val() === true) console.log("🔥 Firebase online");
+        });
+        
+        setInterval(() => {
+            if (playerName && currentScore !== undefined) {
+                syncToFirebase();
+            }
+        }, 7000);
+        
+        // Pre-init audio context เพื่อลด latency
+        setTimeout(() => {
+            initAudio();
+        }, 100);
+        
+        // แสดงไอคอนเสียง
+        const soundIcon = document.getElementById('soundIndicator');
+        if(soundIcon) soundIcon.innerHTML = '<i class="fas fa-music"></i>';
     };
 </script>
 </body>
