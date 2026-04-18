@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>อุทยานป็อบ · UTTAYAN POP (Anti-Cheat)</title>
+    <title>อุทยานป็อบ · UTTAYAN POP</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;600;700&display=swap" rel="stylesheet">
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
@@ -92,11 +92,6 @@
             opacity: 0.6;
             filter: grayscale(0.2);
         }
-        #pop-img.banned-mode {
-            cursor: not-allowed;
-            opacity: 0.4;
-            filter: grayscale(0.5);
-        }
         .pop-active {
             transform: scale(0.85) rotate(3deg) !important;
         }
@@ -173,10 +168,6 @@
         .warning-text.success {
             color: #16a34a;
         }
-        .warning-text.banned {
-            color: #dc2626;
-            font-weight: bold;
-        }
         
         .leaderboard-section {
             margin-top: 16px;
@@ -222,10 +213,6 @@
             color: #1a5d1a;
             font-size: 12px;
             white-space: nowrap;
-        }
-        .rank-item.banned-user {
-            background: #fee2e2;
-            opacity: 0.7;
         }
         
         .trophy-gold { color: #fbbf24; font-size: 16px; }
@@ -346,7 +333,7 @@
             <img src="https://i.postimg.cc/FHrQjZMT/IMG-8866.png" class="title-image" alt="UTTAYAN POP USK">
         </div>
         <div class="badge">
-            <i class="fas fa-tree"></i> UTTAYAN POP (Anti-Cheat) <i class="fas fa-shield-alt"></i>
+            <i class="fas fa-tree"></i> UTTAYAN POP <i class="fas fa-star"></i>
         </div>
     </header>
 
@@ -359,8 +346,8 @@
         <img src="https://i.postimg.cc/WztgWSpc/IMG-7790.png" id="pop-img" draggable="false" alt="ป๊อป" class="disabled">
     </div>
     <div class="tap-hint" id="tapHint">
-        <i class="fas fa-shield-alt"></i> ระบบป้องกันการโกงอัตโนมัติ 
-        <i class="fas fa-robot"></i>
+        <i class="fas fa-hand-peace"></i> กรอกชื่อที่สุภาพเพื่อเริ่มเล่น! 
+        <i class="fas fa-fire"></i>
     </div>
 
     <div class="name-input-section">
@@ -381,13 +368,13 @@
     </div>
     
     <div class="fair-play-footer">
-        <i class="fas fa-shield-alt"></i>
-        ระบบแบนอัตโนมัติ: กดเร็วเกิน 5 ครั้ง/วินาที หรือรูปแบบบอท → แบน 5-30 นาที
-        <i class="fas fa-gavel"></i>
+        <i class="fas fa-heart"></i>
+        ฟิวแบบไม่ทำเพื่อผลประโยชน์ใดอื่น และไม่โจมตีฝ่ายใด — เล่นเพื่อความสนุกเท่านั้น
+        <i class="fas fa-smile-wink"></i>
     </div>
     
     <div class="footer-note">
-        <i class="fas fa-globe"></i> อัปเดตเรียลไทม์ทุกคน • มีระบบตรวจจับการโกง
+        <i class="fas fa-globe"></i> อัปเดตเรียลไทม์ทุกคน • กดเยอะ เลเวลพุ่ง!
     </div>
     <div class="online-status" id="onlineStatus">
         <i class="fas fa-circle" style="color:#16a34a; font-size:6px;"></i> เชื่อมต่อออนไลน์
@@ -428,174 +415,7 @@
         return clean.substring(0, 24) || "นักท่องอุทยาน";
     }
     
-    // ==================== ANTI-CHEAT SYSTEM ====================
-    // ตัวแปรป้องกันการโกง
-    let clickTimestamps = []; // เก็บเวลาที่กดล่าสุด (Unix timestamp milliseconds)
-    let clickCountsPerSecond = []; // เก็บจำนวนครั้งต่อวินาที
-    let isBanned = false;
-    let banExpiryTime = 0;
-    let lastClickTime = 0;
-    const MIN_CLICK_INTERVAL = 300; // กดถี่สุด 300ms (3.3 ครั้ง/วินาที) - ป้องกันบอท
-    const MAX_CLICKS_PER_SECOND = 4; // เกิน 4 ครั้ง/วินาที = ผิดปกติ
-    const BAN_DURATION_NORMAL = 5 * 60 * 1000; // แบน 5 นาที
-    const BAN_DURATION_SEVERE = 30 * 60 * 1000; // แบบรุนแรง 30 นาที
-    
-    let suspiciousActivityCount = 0; // นับจำนวนครั้งที่ทำผิดกฎ
-    let lastSuspiciousTime = 0;
-    
-    // ฟังก์ชันตรวจจับพฤติกรรมบอท/แมโคร
-    function isCheatingBehavior() {
-        const now = Date.now();
-        
-        // 1. ตรวจจับความถี่ในการกด (rate limiting)
-        if (lastClickTime > 0) {
-            const timeDiff = now - lastClickTime;
-            if (timeDiff < MIN_CLICK_INTERVAL) {
-                // กดเร็วเกินไป (เหมือนบอทกด)
-                logSuspiciousActivity("SPEED_CLICK", `กดห่างกัน ${timeDiff}ms (ต่ำกว่า ${MIN_CLICK_INTERVAL}ms)`);
-                return true;
-            }
-        }
-        
-        // 2. ตรวจจับจำนวนครั้งใน 1 วินาทีที่ผ่านมา
-        // ทำความสะอาด timestamp ที่เก่ากว่า 1 วินาที
-        while (clickTimestamps.length > 0 && clickTimestamps[0] < now - 1000) {
-            clickTimestamps.shift();
-        }
-        
-        // ถ้ามีกดเกิน 4 ครั้งใน 1 วินาที = ถือว่าโกง
-        if (clickTimestamps.length >= MAX_CLICKS_PER_SECOND) {
-            logSuspiciousActivity("HIGH_FREQUENCY", `กด ${clickTimestamps.length + 1} ครั้งใน 1 วินาที (เกิน ${MAX_CLICKS_PER_SECOND})`);
-            return true;
-        }
-        
-        // 3. ตรวจจับรูปแบบการกดที่สม่ำเสมอเกินไป (บอท)
-        if (clickTimestamps.length >= 5) {
-            // คำนวณความแปรปรวนของช่วงเวลา
-            let intervals = [];
-            for (let i = 1; i < clickTimestamps.length; i++) {
-                intervals.push(clickTimestamps[i] - clickTimestamps[i-1]);
-            }
-            
-            // ถ้าช่วงเวลาเกือบเท่ากันทุกครั้ง (ความแปรปรวนน้อยมาก) = บอท
-            let avgInterval = intervals.reduce((a,b) => a+b, 0) / intervals.length;
-            let variance = intervals.map(i => Math.pow(i - avgInterval, 2)).reduce((a,b) => a+b, 0) / intervals.length;
-            
-            // ถ้าความแปรปรวนน้อยกว่า 5ms และทุกช่วงห่างกันระหว่าง 250-350ms = บอทชัดเจน
-            if (variance < 10 && intervals.every(i => i > 200 && i < 400)) {
-                logSuspiciousActivity("BOT_PATTERN", `ช่วงเวลาสม่ำเสมอเกินไป (variance:${variance.toFixed(2)}ms)`);
-                return true;
-            }
-        }
-        
-        return false;
-    }
-    
-    // บันทึกพฤติกรรมที่น่าสงสัย
-    function logSuspiciousActivity(type, details) {
-        if (!playerName) return;
-        
-        const now = Date.now();
-        suspiciousActivityCount++;
-        lastSuspiciousTime = now;
-        
-        // บันทึกลง Firebase (สำหรับ admin ตรวจสอบ)
-        const logRef = db.ref('cheat_logs/' + encodeURIComponent(playerName + "_" + now));
-        logRef.set({
-            playerName: playerName,
-            type: type,
-            details: details,
-            timestamp: firebase.database.ServerValue.TIMESTAMP,
-            currentScore: currentScore
-        }).catch(e => console.error("Log error:", e));
-        
-        console.warn(`⚠️ ผู้เล่น ${playerName} พฤติกรรมผิดปกติ: ${type} - ${details}`);
-        
-        // ถ้าผิดปกติมากกว่า 3 ครั้ง หรือเป็น HIGH_FREQUENCY ให้แบทันที
-        if (suspiciousActivityCount >= 3 || type === "HIGH_FREQUENCY" || type === "BOT_PATTERN") {
-            applyBan(type === "HIGH_FREQUENCY" || type === "BOT_PATTERN" ? "SEVERE" : "NORMAL");
-        }
-    }
-    
-    // ฟังก์ชันแบนผู้เล่น
-    async function applyBan(severity = "NORMAL") {
-        if (isBanned) return;
-        
-        const banDuration = severity === "SEVERE" ? BAN_DURATION_SEVERE : BAN_DURATION_NORMAL;
-        banExpiryTime = Date.now() + banDuration;
-        isBanned = true;
-        
-        // บันทึกสถานะแบนลง Firebase
-        if (playerName) {
-            const banRef = db.ref('banned_players/' + encodeURIComponent(playerName));
-            banRef.set({
-                name: playerName,
-                bannedAt: firebase.database.ServerValue.TIMESTAMP,
-                expiresAt: banExpiryTime,
-                reason: severity === "SEVERE" ? "กดเร็วเกินไป/รูปแบบบอท" : "พฤติกรรมผิดปกติซ้ำๆ",
-                severity: severity
-            });
-            
-            // อัปเดตสถานะผู้เล่น
-            const playerRef = db.ref('players/' + encodeURIComponent(playerName));
-            playerRef.update({
-                isBanned: true,
-                banExpiry: banExpiryTime,
-                banReason: severity === "SEVERE" ? "SPEED_CHEAT" : "SUSPICIOUS"
-            });
-        }
-        
-        setGameEnabled(false);
-        popImg.classList.add('banned-mode');
-        const minutes = Math.floor(banDuration / 60000);
-        warningText.innerHTML = `<i class="fas fa-ban"></i> 🚫 ถูกแบน ${minutes} นาที! เหตุผล: ตรวจจับการกดผิดปกติ (${severity === "SEVERE" ? "ความเร็วผิดปกติ" : "พฤติกรรมต้องสงสัย"})`;
-        warningText.className = "warning-text banned";
-        tapHint.innerHTML = `<i class="fas fa-hourglass-half"></i> ถูกแบนชั่วคราว ${minutes} นาที กรุณารอแล้วเริ่มใหม่`;
-        
-        showToast(`🚫 ถูกแบน ${minutes} นาที! เนื่องจากตรวจพบการกดที่ผิดปกติ`, 4000, true);
-        
-        // ตั้งเวลาปลดแบน
-        setTimeout(() => {
-            if (isBanned && Date.now() >= banExpiryTime) {
-                unbanPlayer();
-            }
-        }, banDuration);
-    }
-    
-    function unbanPlayer() {
-        isBanned = false;
-        suspiciousActivityCount = 0;
-        clickTimestamps = [];
-        lastClickTime = 0;
-        
-        if (playerName) {
-            const banRef = db.ref('banned_players/' + encodeURIComponent(playerName));
-            banRef.remove();
-            
-            const playerRef = db.ref('players/' + encodeURIComponent(playerName));
-            playerRef.update({
-                isBanned: false,
-                banExpiry: null,
-                banReason: null
-            });
-        }
-        
-        popImg.classList.remove('banned-mode');
-        setGameReadyAfterUnban();
-        warningText.innerHTML = `<i class="fas fa-check-circle"></i> ปลดแบนแล้ว! กรุณาเล่นอย่างสุภาพ`;
-        warningText.className = "warning-text success";
-        tapHint.innerHTML = '<i class="fas fa-hand-peace"></i> กดที่รูปเพื่อเพิ่มคะแนน (กดช้าลงหน่อยนะ) <i class="fas fa-heart"></i>';
-        
-        showToast("✅ ปลดแบนแล้ว! กรุณาเล่นอย่างเหมาะสม", 2000);
-    }
-    
-    function setGameReadyAfterUnban() {
-        if (playerName && !isBanned) {
-            setGameEnabled(true);
-        }
-    }
-    
-    // ==================== ตัวแปรหลักเกม ====================
+    // ==================== Logic ตัวเกม ====================
     let currentScore = 0;
     let currentLevel = 1;
     let playerName = "";
@@ -603,6 +423,8 @@
     let showFullRank = false;
     let allPlayers = [];
     let congratsShownTime = {}; 
+    let pendingUpdate = false;
+    let lastUpdateTime = 0;
     
     const popImg = document.getElementById('pop-img');
     const scoreEl = document.getElementById('score');
@@ -620,28 +442,19 @@
     function updateUI() {
         scoreEl.innerText = currentScore.toLocaleString('en-US');
         lvEl.innerText = currentLevel;
-        if (playerName && !isBanned) {
+        if (playerName) {
             currentUserDisplay.innerHTML = `<i class="fas fa-user-check"></i> กำลังเล่น: ${playerName} (${currentScore.toLocaleString()} คะแนน)`;
             currentUserDisplay.style.display = "inline-block";
-        } else if (isBanned) {
-            currentUserDisplay.innerHTML = `<i class="fas fa-ban"></i> ${playerName} (ถูกแบนชั่วคราว)`;
-            currentUserDisplay.style.display = "inline-block";
-            currentUserDisplay.style.background = "#fee2e2";
-            currentUserDisplay.style.color = "#dc2626";
         }
     }
     
     function setGameEnabled(enabled) {
         isGameReady = enabled;
-        if (enabled && !isBanned) {
+        if (enabled) {
             popImg.classList.remove('disabled');
-            popImg.classList.remove('banned-mode');
-            tapHint.innerHTML = '<i class="fas fa-hand-peace"></i> กดที่รูปเพื่อเพิ่มคะแนน! (กดช้าๆ นะ) <i class="fas fa-heart"></i>';
+            tapHint.innerHTML = '<i class="fas fa-hand-peace"></i> กดที่รูปเพื่อเพิ่มคะแนน! <i class="fas fa-fire"></i>';
             warningText.innerHTML = '<i class="fas fa-check-circle"></i> กำลังเล่นด้วยชื่อ: ' + playerName;
             warningText.className = "warning-text success";
-        } else if (isBanned) {
-            popImg.classList.add('disabled');
-            popImg.classList.add('banned-mode');
         } else {
             popImg.classList.add('disabled');
             tapHint.innerHTML = '<i class="fas fa-hand-peace"></i> กรอกชื่อที่สุภาพเพื่อเริ่มเล่น!';
@@ -650,7 +463,7 @@
     
     // อัปเดตคะแนนไป Firebase
     function syncScoreToFirebase() {
-        if (!playerName || isBanned) return;
+        if (!playerName) return;
         
         const playerRef = db.ref('players/' + encodeURIComponent(playerName));
         const newScore = currentScore;
@@ -660,7 +473,6 @@
             name: playerName,
             score: newScore,
             level: newLevel,
-            isBanned: isBanned || false,
             timestamp: firebase.database.ServerValue.TIMESTAMP
         }).catch(err => {
             console.error("อัปเดต Firebase ล้มเหลว:", err);
@@ -669,56 +481,27 @@
     
     function loadPlayerScoreFromFirebase() {
         if (!playerName) return;
+        const playerRef = db.ref('players/' + encodeURIComponent(playerName));
         
-        // ตรวจสอบสถานะแบนก่อน
-        const banRef = db.ref('banned_players/' + encodeURIComponent(playerName));
-        banRef.once('value').then((banSnap) => {
-            if (banSnap.exists()) {
-                const banData = banSnap.val();
-                if (banData.expiresAt && banData.expiresAt > Date.now()) {
-                    isBanned = true;
-                    banExpiryTime = banData.expiresAt;
-                    setGameEnabled(false);
-                    popImg.classList.add('banned-mode');
-                    const remainingMin = Math.ceil((banExpiryTime - Date.now()) / 60000);
-                    warningText.innerHTML = `<i class="fas fa-ban"></i> 🚫 ถูกแบน ${remainingMin} นาที!`;
-                    warningText.className = "warning-text banned";
-                    tapHint.innerHTML = `<i class="fas fa-hourglass-half"></i> ถูกแบนชั่วคราว`;
-                    updateUI();
-                    
-                    // ตั้งเวลาปลดแบน
-                    setTimeout(() => {
-                        if (isBanned && Date.now() >= banExpiryTime) unbanPlayer();
-                    }, Math.max(0, banExpiryTime - Date.now()));
-                    return;
-                } else {
-                    // แบนหมดอายุแล้ว ลบออก
-                    banRef.remove();
-                }
-            }
-            
-            // โหลดคะแนนปกติ
-            const playerRef = db.ref('players/' + encodeURIComponent(playerName));
-            playerRef.once('value').then((snapshot) => {
-                const data = snapshot.val();
-                if (data && typeof data.score === 'number' && data.score !== undefined) {
-                    currentScore = data.score;
-                    currentLevel = calcLevel(currentScore);
-                } else {
-                    currentScore = 0;
-                    currentLevel = 1;
-                    syncScoreToFirebase();
-                }
-                updateUI();
-                setGameEnabled(true);
-                showToast(`สวัสดี ${playerName}! กดช้าๆ นะ`, 1500);
-            }).catch(err => {
-                console.error("โหลดข้อมูลผิดพลาด:", err);
+        playerRef.once('value').then((snapshot) => {
+            const data = snapshot.val();
+            if (data && typeof data.score === 'number' && data.score !== undefined) {
+                currentScore = data.score;
+                currentLevel = calcLevel(currentScore);
+            } else {
                 currentScore = 0;
                 currentLevel = 1;
-                updateUI();
-                setGameEnabled(true);
-            });
+                syncScoreToFirebase();
+            }
+            updateUI();
+            setGameEnabled(true);
+            showToast(`สวัสดี ${playerName}! กดได้เลย`, 1500);
+        }).catch(err => {
+            console.error("โหลดข้อมูลผิดพลาด:", err);
+            currentScore = 0;
+            currentLevel = 1;
+            updateUI();
+            setGameEnabled(true);
         });
     }
     
@@ -726,7 +509,9 @@
         if (!rankOneName) return;
         const now = Date.now();
         const lastShown = congratsShownTime[rankOneName] || 0;
-        if (lastShown && (now - lastShown) < 180000) return;
+        if (lastShown && (now - lastShown) < 180000) {
+            return;
+        }
         congratsShownTime[rankOneName] = now;
         
         const popDiv = document.createElement('div');
@@ -753,7 +538,9 @@
             
             if (allPlayers.length > 0) {
                 const rankOne = allPlayers[0];
-                if (rankOne && rankOne.name) showCongratsForRankOne(rankOne.name);
+                if (rankOne && rankOne.name) {
+                    showCongratsForRankOne(rankOne.name);
+                }
             }
         });
     }
@@ -768,21 +555,19 @@
         for (let i = 0; i < Math.min(limit, allPlayers.length); i++) {
             const p = allPlayers[i];
             const isMe = (p.name === playerName);
-            const isBannedPlayer = p.isBanned === true;
             let trophyHtml = '';
             if (i === 0) trophyHtml = '<i class="fas fa-crown trophy-gold"></i>';
             else if (i === 1) trophyHtml = '<i class="fas fa-medal trophy-silver"></i>';
             else if (i === 2) trophyHtml = '<i class="fas fa-medal trophy-bronze"></i>';
             
             const displayScore = p.score.toLocaleString('en-US');
-            const bannedBadge = isBannedPlayer ? ' <span style="color:#dc2626;">🚫</span>' : '';
             
             html += `
-                <div class="rank-item ${isBannedPlayer ? 'banned-user' : ''}" style="${isMe ? 'background:#e8f5e9;' : ''}">
+                <div class="rank-item" style="${isMe ? 'background:#e8f5e9;' : ''}">
                     <span class="name">
                         <b>${i+1}.</b> 
                         ${trophyHtml} 
-                        ${p.name}${bannedBadge} <small>Lv.${p.level}</small>
+                        ${p.name} <small>Lv.${p.level}</small>
                     </span>
                     <span class="pts">${displayScore} <i class="fas fa-bolt"></i></span>
                 </div>
@@ -799,24 +584,12 @@
         renderLeaderboard(); 
     };
     
-    // ฟังก์ชันกดเพิ่มคะแนน - พร้อมระบบ Anti-Cheat
+    // ฟังก์ชันกดเพิ่มคะแนน - ทำงานทันที ไม่มีดีเลย์
     function addScore() {
-        if (!isGameReady || isBanned) {
-            if (isBanned) showToast("คุณถูกแบนชั่วคราว กรุณารอสักครู่", 1500, true);
-            else showToast("กรอกชื่อก่อนนะ!", 1000, true);
+        if (!isGameReady) {
+            showToast("กรอกชื่อก่อนนะ!", 1000, true);
             return;
         }
-        
-        const now = Date.now();
-        
-        // ตรวจจับการโกงก่อน
-        if (isCheatingBehavior()) {
-            return; // ถ้าตรวจจับได้ จะไม่เพิ่มคะแนนและแบนอัตโนมัติ
-        }
-        
-        // บันทึกเวลาในการกด
-        clickTimestamps.push(now);
-        lastClickTime = now;
         
         // เพิ่มคะแนนทันที
         currentScore++;
@@ -830,14 +603,8 @@
         popImg.classList.add('pop-active');
         setTimeout(() => popImg.classList.remove('pop-active'), 80);
         
-        // สั่นถ้ารองรับ (เบาๆ)
-        if (navigator.vibrate) navigator.vibrate(8);
-        
-        // ทำความสะอาด timestamps ที่เก่าเกินไป (ป้องกัน memory leak)
-        if (clickTimestamps.length > 30) {
-            const cutoff = now - 5000;
-            clickTimestamps = clickTimestamps.filter(t => t > cutoff);
-        }
+        // สั่นถ้ารองรับ
+        if (navigator.vibrate) navigator.vibrate(10);
     }
     
     function savePlayerName() {
@@ -852,13 +619,6 @@
         }
         
         playerName = sanitizeName(name);
-        
-        // รีเซ็ตตัวแปร Anti-Cheat
-        isBanned = false;
-        suspiciousActivityCount = 0;
-        clickTimestamps = [];
-        lastClickTime = 0;
-        
         setGameEnabled(false);
         loadPlayerScoreFromFirebase();
         saveNameBtn.innerHTML = '✏️ เปลี่ยนชื่อ';
@@ -878,10 +638,10 @@
         const connectedRef = db.ref(".info/connected");
         connectedRef.on("value", (snap) => {
             if (snap.val() === true) {
-                onlineStatus.innerHTML = '<i class="fas fa-circle" style="color:#16a34a; font-size:6px;"></i> เชื่อมต่อออนไลน์ • ระบบป้องกันการโกงทำงาน';
+                onlineStatus.innerHTML = '<i class="fas fa-circle" style="color:#16a34a; font-size:6px;"></i> เชื่อมต่อออนไลน์ • อัปเดตเรียลไทม์';
                 onlineStatus.style.color = "#16a34a";
             } else {
-                onlineStatus.innerHTML = '<i class="fas fa-circle" style="color:#dc2626; font-size:6px;"></i> ออฟไลน์ • ระบบ Anti-Cheat อาจไม่ทำงาน';
+                onlineStatus.innerHTML = '<i class="fas fa-circle" style="color:#dc2626; font-size:6px;"></i> ออฟไลน์ • ข้อมูลจะอัปเดตเมื่อเชื่อมต่อ';
                 onlineStatus.style.color = "#dc2626";
             }
         });
@@ -900,16 +660,18 @@
         
         saveNameBtn.onclick = savePlayerName;
         
+        // กด Enter ในช่องชื่อได้
         playerNameInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') savePlayerName();
+            if (e.key === 'Enter') {
+                savePlayerName();
+            }
         });
         
         listenLeaderboard();
         checkConnection();
         
-        console.log("🛡️ อุทยานป็อบ (Anti-Cheat) พร้อมใช้งาน!");
-        console.log("📋 กฎ: กดช้าๆ ไม่เกิน 4 ครั้ง/วินาที, ห้ามใช้บอท/แมโคร");
-        console.log("⚠️ ตรวจจับอัตโนมัติ: ความเร็วผิดปกติ, รูปแบบบอท, การกดถี่เกินไป");
+        console.log("🎮 อุทยานป็อบ พร้อมใช้งานแล้ว! ไม่มีข้อจำกัดคะแนน");
+        console.log("💡 วิธีเล่น: กรอกชื่อที่สุภาพ → กดที่รูปโลโก้ → คะแนนเพิ่มเรื่อยๆ ไม่มีวันหยุด!");
     };
 </script>
 </body>
