@@ -348,7 +348,7 @@
 
     <div id="vote-ui" class="vote-card">
         <div style="font-size: 14px; font-weight: 600; color: #92400e;">เป้าหมายโหวตเพื่อเปิดซีซั่นใหม่</div>
-        <div id="vote-text" style="font-size: 24px; font-weight: 800; color: #b45309; margin: 5px 0;">0 / 1000</div>
+        <div id="vote-text" style="font-size: 24px; font-weight: 800; color: #b45309; margin: 5px 0;">0 / 200</div>
         <div class="vote-bar-bg"><div id="vote-bar-fill"></div></div>
         <button id="voteButton" class="vote-btn-main">กดโหวตเพื่อเข้าสู่เกม</button>
         <div style="font-size: 9px; margin-top: 5px; color: #b45309;">จำกัด 1 ครั้งต่อเครื่อง</div>
@@ -417,9 +417,9 @@
     }
     const db = firebase.database();
     
-    // ==================== ระบบโหวตใหม่ (แก้ไขให้แยกเครื่อง) ====================
-    const VOTE_GOAL = 1000;
-    const LOCAL_VOTE_KEY = 'uttayan_voted_session_v2'; // เปลี่ยน Key เพื่อล้างบั๊กเก่า
+    // ==================== ระบบโหวตใหม่ (เปลี่ยนเป้าหมายเป็น 200) ====================
+    const VOTE_GOAL = 200; // แก้จาก 1000 เป็น 200
+    const LOCAL_VOTE_KEY = 'uttayan_voted_session_v2'; 
 
     function checkVotedStatus() {
         const hasVoted = localStorage.getItem(LOCAL_VOTE_KEY);
@@ -432,12 +432,11 @@
     document.getElementById('voteButton').onclick = function() {
         if (localStorage.getItem(LOCAL_VOTE_KEY) === 'true') return;
 
-        // บันทึกลง Firebase แบบ .push() เพื่อให้ข้อมูลไม่ทับกันและนับจำนวนได้จริง
         db.ref('votes').push({
             timestamp: firebase.database.ServerValue.TIMESTAMP,
             userAgent: navigator.userAgent
         }).then(() => {
-            localStorage.setItem(LOCAL_VOTE_KEY, 'true'); // บันทึกในเครื่องนี้
+            localStorage.setItem(LOCAL_VOTE_KEY, 'true');
             document.getElementById('voteButton').disabled = true;
             document.getElementById('voteButton').innerText = "คุณโหวตไปแล้ว";
             showToast("โหวตสำเร็จ!");
@@ -612,7 +611,7 @@
         });
     }
     window.onload = () => {
-        checkVotedStatus(); // ตรวจสอบสถานะการโหวตจากเครื่อง
+        checkVotedStatus();
         popImg.onclick = addScore;
         saveNameBtn.onclick = savePlayerName;
         playerNameInput.onkeypress = (e) => { if(e.key==='Enter') savePlayerName(); };
