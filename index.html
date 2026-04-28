@@ -315,6 +315,7 @@
             gap: 4px;
         }
 
+        /* --- CSS สำหรับระบบ Vote --- */
         .vote-card { background: #fffbeb; border: 2px solid #fde68a; border-radius: 32px; padding: 20px; margin: 15px 0; }
         .vote-bar-bg { width: 100%; background: #fef3c7; height: 10px; border-radius: 10px; margin: 10px 0; overflow: hidden; }
         #vote-bar-fill { width: 0%; height: 100%; background: #f59e0b; transition: 0.5s; }
@@ -349,8 +350,8 @@
         <div style="font-size: 14px; font-weight: 600; color: #92400e;">เป้าหมายโหวตเพื่อเปิดซีซั่นใหม่</div>
         <div id="vote-text" style="font-size: 24px; font-weight: 800; color: #b45309; margin: 5px 0;">0 / 1000</div>
         <div class="vote-bar-bg"><div id="vote-bar-fill"></div></div>
-        <button id="voteButton" class="vote-btn-main">กดโหวต (1 เครื่อง/ครั้ง)</button>
-        <div id="vote-info" style="font-size: 9px; margin-top: 5px; color: #b45309;">โหวตแยกตามเครื่องที่ใช้งาน</div>
+        <button id="voteButton" class="vote-btn-main">กดโหวตเพื่อเข้าสู่เกม</button>
+        <div style="font-size: 9px; margin-top: 5px; color: #b45309;">จำกัด 1 ครั้งต่อเครื่อง</div>
     </div>
 
     <div id="game-ui" class="hidden-game">
@@ -416,40 +417,44 @@
     }
     const db = firebase.database();
     
-    // ==================== ระบบโหวต (แก้ไขให้แยกเครื่อง) ====================
+    // ==================== ระบบโหวตใหม่ (แก้ไขให้แยกเครื่อง) ====================
     const VOTE_GOAL = 1000;
+    const LOCAL_VOTE_KEY = 'uttayan_voted_session_v2'; // เปลี่ยน Key เพื่อล้างบั๊กเก่า
 
-    function checkIfVoted() {
-        // เช็คในหน่วยความจำของเครื่อง (LocalStorage) แทน IP
-        const voted = localStorage.getItem('uttayan_voted');
-        if(voted === 'true') {
+    function checkVotedStatus() {
+        const hasVoted = localStorage.getItem(LOCAL_VOTE_KEY);
+        if (hasVoted === 'true') {
             document.getElementById('voteButton').disabled = true;
             document.getElementById('voteButton').innerText = "คุณโหวตไปแล้ว";
         }
     }
 
-    document.getElementById('voteButton').onclick = () => {
-        if(localStorage.getItem('uttayan_voted') === 'true') return;
+    document.getElementById('voteButton').onclick = function() {
+        if (localStorage.getItem(LOCAL_VOTE_KEY) === 'true') return;
 
-        // ใช้ .push() เพื่อสร้าง ID ใหม่เสมอ (คะแนนจะเพิ่มขึ้นจริง)
-        db.ref('votes').push({ 
-            time: firebase.database.ServerValue.TIMESTAMP,
-            device: navigator.platform 
+        // บันทึกลง Firebase แบบ .push() เพื่อให้ข้อมูลไม่ทับกันและนับจำนวนได้จริง
+        db.ref('votes').push({
+            timestamp: firebase.database.ServerValue.TIMESTAMP,
+            userAgent: navigator.userAgent
         }).then(() => {
-            localStorage.setItem('uttayan_voted', 'true'); // บันทึกว่าเครื่องนี้โหวตแล้ว
+            localStorage.setItem(LOCAL_VOTE_KEY, 'true'); // บันทึกในเครื่องนี้
             document.getElementById('voteButton').disabled = true;
             document.getElementById('voteButton').innerText = "คุณโหวตไปแล้ว";
             showToast("โหวตสำเร็จ!");
+        }).catch(err => {
+            showToast("เกิดข้อผิดพลาด ลองใหม่อีกครั้ง", 1500, true);
         });
     };
 
+    // ติดตามยอดโหวตแบบ Realtime
     db.ref('votes').on('value', snap => {
         const count = snap.numChildren();
         const percent = (count / VOTE_GOAL) * 100;
         document.getElementById('vote-text').innerText = `${count} / ${VOTE_GOAL}`;
         document.getElementById('vote-bar-fill').style.width = Math.min(percent, 100) + "%";
 
-        if(count >= VOTE_GOAL) {
+        // เปิดเกมเมื่อยอดถึงเป้า
+        if (count >= VOTE_GOAL) {
             document.getElementById('vote-ui').style.display = "none";
             document.getElementById('game-ui').classList.remove('hidden-game');
         }
@@ -607,7 +612,7 @@
         });
     }
     window.onload = () => {
-        checkIfVoted(); // เช็คสถานะโหวตเมื่อเปิดหน้า
+        checkVotedStatus(); // ตรวจสอบสถานะการโหวตจากเครื่อง
         popImg.onclick = addScore;
         saveNameBtn.onclick = savePlayerName;
         playerNameInput.onkeypress = (e) => { if(e.key==='Enter') savePlayerName(); };
